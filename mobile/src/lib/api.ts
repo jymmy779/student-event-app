@@ -1,4 +1,4 @@
-import type { ApiResponse, EventItem, Registration } from "./types";
+import type { ApiResponse, EventItem } from "./types";
 
 const configuredUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -30,8 +30,4 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   events: (query = "") => request<EventItem[]>(`/events${query ? `?q=${encodeURIComponent(query)}` : ""}`),
-  event: (id: string) => request<EventItem>(`/events/${encodeURIComponent(id)}`),
-  registrations: () => request<Registration[]>("/me/registrations"),
-  register: (id: string) => request<Omit<Registration, "event">>(`/events/${encodeURIComponent(id)}/register`, { method: "POST" }),
-  unregister: (id: string) => request<{ eventId: string; isRegistered: false }>(`/events/${encodeURIComponent(id)}/register`, { method: "DELETE" }),
 };

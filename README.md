@@ -4,7 +4,7 @@
 
 - Mobile: Expo, React Native, TypeScript và Expo Router.
 - Backend: Node.js, Express, TypeScript, Prisma và SQLite.
-- Mốc hiện tại: tìm kiếm, xem chi tiết, đăng ký/hủy đăng ký và lịch cá nhân bằng tài khoản demo cố định.
+- Baseline hiện tại: danh sách và tìm kiếm sự kiện qua API thật. Chi tiết, đăng ký và lịch cá nhân được giao cho thành viên phụ trách triển khai lại.
 
 ## Yêu cầu môi trường
 
@@ -55,7 +55,7 @@ DATABASE_URL="file:./dev.db"
 PORT=3000
 ```
 
-Tạo SQLite database, áp migration và seed tài khoản demo cùng 3 sự kiện:
+Tạo SQLite database, áp migration và seed 3 sự kiện:
 
 ```bash
 npm run db:deploy
@@ -171,16 +171,9 @@ Nếu điện thoại không mở được JSON:
 - Đảm bảo hai thiết bị cùng mạng và router không bật client/AP isolation.
 - Cho phép Node.js qua Windows Firewall trên mạng Private.
 
-## 4. Tài khoản demo và dữ liệu
+## 4. Dữ liệu hiện tại
 
-Backend tự dùng tài khoản cố định:
-
-```text
-id: demo-user
-email: demo@student.local
-```
-
-Mobile không gửi `userId`. Đăng ký và lịch được lưu trong `server/prisma/dev.db`, nên đóng/mở lại app vẫn còn dữ liệu.
+Schema nền đã có `User`, `Event`, `Registration` và `Note`. Baseline hiện chỉ seed 3 sự kiện; người phụ trách luồng đăng ký sẽ bổ sung demo user và logic persistence trong nhánh của mình.
 
 Muốn khôi phục hoặc bổ sung dữ liệu mẫu, chạy lại:
 
@@ -189,21 +182,41 @@ cd server
 npm run db:seed
 ```
 
+### Xem dữ liệu bằng Prisma Studio
+
+Từ thư mục `server/`, chạy:
+
+```bash
+npx prisma studio
+```
+
+Trình duyệt sẽ mở `http://localhost:5555`. Có thể xem trực tiếp các bảng `Event`, `User`, `Registration` và `Note`. Ở baseline hiện tại, `Event` có 3 sự kiện mẫu; các bảng còn lại có thể trống.
+
+Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác nhau. Dừng Studio bằng `Ctrl+C` khi không dùng nữa.
+
 ## 5. API hiện có
 
 | Method | Endpoint | Chức năng |
 | --- | --- | --- |
-| GET | `/events?q=` | Danh sách và tìm theo tên |
-| GET | `/events/:id` | Chi tiết và trạng thái đăng ký |
-| POST | `/events/:id/register` | Đăng ký idempotent |
-| DELETE | `/events/:id/register` | Hủy nếu chưa check-in |
-| GET | `/me/registrations` | Lịch của demo user |
+| GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu |
+| GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
 
-Response luôn có dạng:
+Các endpoint chi tiết, đăng ký, hủy và lịch cá nhân chưa có trong baseline; Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
+
+Response thành công hiện trả một mảng trong `data`:
 
 ```json
 {
-  "data": {},
+  "data": [
+    {
+      "id": "event-future-tech",
+      "title": "Seminar Công nghệ và AI",
+      "description": "...",
+      "location": "Phòng B2.02",
+      "startsAt": "2026-10-10T06:30:00.000Z",
+      "endsAt": "2026-10-10T09:30:00.000Z"
+    }
+  ],
   "error": null
 }
 ```
@@ -214,8 +227,8 @@ Lỗi có dạng:
 {
   "data": null,
   "error": {
-    "code": "EVENT_NOT_FOUND",
-    "message": "Không tìm thấy sự kiện."
+    "code": "NOT_FOUND",
+    "message": "Không tìm thấy tài nguyên."
   }
 }
 ```

@@ -287,16 +287,6 @@ Bảng này là phân công triển khai trong repository. File đăng ký đề
 | **Lê Thanh Kha** | **Ghi chú và tóm tắt AI** | Màn nhập/xem ghi chú; API lưu/đọc note và gọi AI; phần schema `Note`; validation nội dung; test note rỗng/quá dài, quyền sở hữu, AI success/timeout/error; tài liệu cấu hình khóa AI và bằng chứng gọi thật |
 | **Chu Anh Khôi** | **Nhắc giờ, công cụ demo và phát hành** | Local notification khi đăng ký/hủy; trạng thái từ chối quyền; script/trang tạo QR cho 3 event mẫu; test logic lên/hủy lịch; UI polish/animation; EAS Build/APK; tài liệu build, ảnh, video và slide demo |
 
-### Phân theo mốc
-
-| Mốc | Người chính | Người phối hợp | Kết quả |
-| --- | --- | --- | --- |
-| **0 — Nền tảng** | Thái làm kết nối mobile/API; Quốc làm schema và seed nền | Mỗi người review phần sẽ dùng | Expo gọi được Express/SQLite qua LAN; migration và seed ổn định |
-| **1 — Khám phá và đăng ký** | Thái sở hữu Khám phá; Quốc sở hữu Chi tiết/Đăng ký/Lịch | Hai người test chéo API và UI của nhau | Tìm kiếm → chi tiết → đăng ký → lịch chạy bằng DB thật |
-| **2 — QR và nhắc giờ** | Đạt sở hữu QR check-in; Khôi sở hữu notification | Thái nối route; Quốc và Kha review test biên | QR đúng/sai/lặp/ngoài giờ; quyền camera; lên và hủy nhắc giờ |
-| **3 — Ghi chú và AI** | Kha sở hữu toàn bộ luồng | Quốc review DB/API; Thái review navigation; Đạt test trên máy; Khôi review UI | Ghi chú → AI thật → lưu/xem lại; lỗi AI không tạo kết quả giả |
-| **4 — Hoàn thiện** | Khôi sở hữu build/demo; Thái sở hữu tích hợp release | Mỗi người sửa lỗi và viết phần báo cáo của tính năng mình | APK, video, slide, báo cáo và ba luồng demo hoàn chỉnh |
-
 ### Quy tắc làm việc
 
 - Mỗi người sở hữu một luồng end-to-end: tự làm phần DB/schema cần thiết, API, mobile UI, xử lý lỗi, test và tài liệu của tính năng đó. Không tách một người chỉ làm backend hoặc chỉ làm kiểm thử.

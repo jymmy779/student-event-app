@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  passwordHash  String?
+  registrations Registration[]
+  notes         Note[]
+}
+
+model Event {
+  id            String         @id @default(cuid())
+  title         String
+  description   String
+  location      String
+  startsAt      DateTime
+  endsAt        DateTime
+  qrToken       String         @unique
+  createdAt     DateTime       @default(now())
+  registrations Registration[]
+  notes         Note[]
+}
+
+model Registration {
+  id          String    @id @default(cuid())
+  userId      String
+  eventId     String
+  createdAt   DateTime  @default(now())
+  checkedInAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@unique([userId, eventId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  content   String
+  summary   String?
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@unique([userId, eventId])
+}

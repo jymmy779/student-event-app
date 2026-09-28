@@ -1,4 +1,4 @@
-import type { ApiResponse, EventItem } from "./types";
+import type { ApiResponse, EventItem, NoteItem } from "./types";
 
 const configuredUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -22,12 +22,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new ApiRequestError("Máy chủ trả dữ liệu không hợp lệ.", "INVALID_RESPONSE");
   }
-  if (!response.ok || body.error || body.data === null) {
+  if (!response.ok || body.error) {
     throw new ApiRequestError(body.error?.message ?? "Yêu cầu thất bại.", body.error?.code);
   }
-  return body.data;
+  return body.data as T;
 }
 
 export const api = {
   events: (query = "") => request<EventItem[]>(`/events${query ? `?q=${encodeURIComponent(query)}` : ""}`),
+  getNote: (eventId: string) => request<NoteItem | null>(`/events/${eventId}/note`),
+  saveNote: (eventId: string, content: string) =>
+    request<NoteItem>(`/events/${eventId}/note`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    }),
+  summarizeNote: (eventId: string) =>
+    request<NoteItem>(`/events/${eventId}/summarize`, {
+      method: "POST",
+    }),
 };

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useFocusEffect } from "expo-router";
-import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ScreenState";
 import { api } from "@/lib/api";
@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import type { EventItem } from "@/lib/types";
 
 export default function ExploreScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -34,20 +35,65 @@ export default function ExploreScreen() {
     return () => { active = false; };
   }, [debouncedQuery, reloadKey]));
 
+  const now = new Date();
+
   return <View style={styles.screen}>
     <View style={[styles.header, { paddingTop: insets.top }]}><View style={styles.headerContent}><Text style={styles.eyebrow}>STUDENT EVENTS</Text><Text style={styles.heading}>Khám phá sự kiện</Text><TextInput accessibilityLabel="Tìm sự kiện" placeholder="Tìm theo tên sự kiện…" placeholderTextColor="#94a3b8" value={query} onChangeText={setQuery} style={styles.search} /></View></View>
     {loading ? <LoadingState label="Đang tải sự kiện…" /> : error ? <ErrorState message={error} onRetry={() => setReloadKey((value) => value + 1)} /> :
       <FlatList contentContainerStyle={events.length ? styles.list : styles.empty} data={events} keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyState title="Không tìm thấy sự kiện" message={query ? "Thử một từ khóa khác." : "Các sự kiện mới sẽ xuất hiện tại đây."} />}
-        renderItem={({ item }) => <View style={styles.card}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.meta}>{formatDate(item.startsAt)}</Text><Text style={styles.meta}>📍 {item.location}</Text><Text numberOfLines={2} style={styles.description}>{item.description}</Text>
-        </View>} />}
+        renderItem={({ item }) => {
+          const isPast = new Date(item.endsAt).getTime() < now.getTime();
+          return (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push({ pathname: "/events/[id]", params: { id: item.id } })}
+              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            >
+              <View style={styles.cardHeaderRow}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                {isPast && (
+                  <View style={styles.pastTag}>
+                    <Text style={styles.pastTagText}>Đã kết thúc</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.meta}>{formatDate(item.startsAt)}</Text>
+              <Text style={styles.meta}>📍 {item.location}</Text>
+              <Text numberOfLines={2} style={styles.description}>{item.description}</Text>
+
+              {isPast && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    router.push({
+                      pathname: "/notes/[eventId]",
+                      params: { eventId: item.id, eventTitle: item.title },
+                    });
+                  }}
+                  style={({ pressed }) => [styles.noteShortcutBtn, pressed && styles.cardPressed]}
+                >
+                  <Text style={styles.noteShortcutText}>📝 Ghi chú & Tóm tắt AI</Text>
+                </Pressable>
+              )}
+            </Pressable>
+          );
+        }} />}
   </View>;
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#f5f7fb" }, header: { backgroundColor: "#1e3a8a" }, headerContent: { paddingHorizontal: 20, paddingVertical: 16 }, eyebrow: { color: "#bfdbfe", fontSize: 12, fontWeight: "700", letterSpacing: 1.5 }, heading: { color: "#fff", fontSize: 28, fontWeight: "800", marginBottom: 14, marginTop: 4 },
   search: { backgroundColor: "#fff", borderRadius: 12, color: "#0f172a", fontSize: 16, paddingHorizontal: 14, paddingVertical: 11 }, list: { padding: 16, gap: 14 }, empty: { flexGrow: 1 },
-  card: { backgroundColor: "#fff", borderRadius: 16, elevation: 2, padding: 18, shadowColor: "#172554", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12 }, cardTitle: { color: "#172554", fontSize: 18, fontWeight: "700" }, meta: { color: "#475569", fontSize: 14, marginTop: 7 }, description: { color: "#64748b", fontSize: 14, lineHeight: 20, marginTop: 8 },
+  card: { backgroundColor: "#fff", borderRadius: 16, elevation: 2, padding: 18, shadowColor: "#172554", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12 },
+  cardPressed: { opacity: 0.8 },
+  cardHeaderRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 },
+  cardTitle: { color: "#172554", fontSize: 18, fontWeight: "700", flex: 1 },
+  pastTag: { backgroundColor: "#fef3c7", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  pastTagText: { color: "#b45309", fontSize: 11, fontWeight: "700" },
+  meta: { color: "#475569", fontSize: 14, marginTop: 7 },
+  description: { color: "#64748b", fontSize: 14, lineHeight: 20, marginTop: 8 },
+  noteShortcutBtn: { backgroundColor: "#eff6ff", borderColor: "#bfdbfe", borderWidth: 1, borderRadius: 8, marginTop: 12, paddingVertical: 8, paddingHorizontal: 12, alignSelf: "flex-start" },
+  noteShortcutText: { color: "#1d4ed8", fontSize: 13, fontWeight: "600" },
 });

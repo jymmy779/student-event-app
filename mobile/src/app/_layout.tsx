@@ -8,6 +8,20 @@ export default function RootLayout() {
     <Stack screenOptions={{ headerStyle: { backgroundColor: "#1e3a8a" }, headerTintColor: "#fff", contentStyle: { backgroundColor: "#f5f7fb" } }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="events/[id]"
+        options={{
+          title: "Chi tiết sự kiện",
+          headerBackTitle: "Quay lại",
+        }}
+      />
+      <Stack.Screen
+        name="notes/[eventId]"
+        options={{
+          title: "Ghi chú & Tóm tắt AI",
+          headerBackTitle: "Quay lại",
+        }}
+      />
     </Stack>
   </SafeAreaProvider>;
 }

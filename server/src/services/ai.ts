@@ -72,44 +72,63 @@ export async function summarizeContent(
 
   try {
     if (provider === "gemini") {
-      const model = process.env.GEMINI_MODEL ?? "gemini-1.5-flash";
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(activeKey)}`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Bạn là trợ lý học tập cho sinh viên. Hãy tóm tắt nội dung ghi chú sau đây một cách ngắn gọn, mạch lạc, làm nổi bật các ý chính và hành động cần nhớ:\n\n${trimmed}`,
-                },
-              ],
-            },
-          ],
-        }),
-      });
+      const configuredModel = process.env.GEMINI_MODEL;
+      const candidateModels = configuredModel
+        ? [configuredModel]
+        : ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-2.5-flash", "gemini-1.5-flash"];
 
-      if (!response.ok) {
-        throw new AiServiceError(
-          `Dịch vụ AI (Gemini) phản hồi lỗi (HTTP ${response.status}). Vui lòng thử lại sau.`,
-          503,
-          "AI_SERVICE_UNAVAILABLE"
-        );
+      let lastErrorStatus = 500;
+      for (const model of candidateModels) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(activeKey)}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: `Bạn là trợ lý học tập cho sinh viên. Hãy tóm tắt nội dung ghi chú sau đây một cách ngắn gọn, mạch lạc, làm nổi bật các ý chính và hành động cần nhớ:\n\n${trimmed}`,
+                  },
+                ],
+              },
+            ],
+          }),
+        });
+
+        if (response.status === 404 && candidateModels.length > 1) {
+          // Model này không còn khả dụng với key, thử model candidate tiếp theo
+          lastErrorStatus = 404;
+          continue;
+        }
+
+        if (!response.ok) {
+          throw new AiServiceError(
+            `Dịch vụ AI (Gemini) phản hồi lỗi (HTTP ${response.status}). Vui lòng thử lại sau.`,
+            503,
+            "AI_SERVICE_UNAVAILABLE"
+          );
+        }
+
+        const json = (await response.json()) as any;
+        const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text || typeof text !== "string") {
+          throw new AiServiceError(
+            "Dịch vụ AI không trả về nội dung tóm tắt hợp lệ.",
+            503,
+            "AI_SERVICE_UNAVAILABLE"
+          );
+        }
+        return text.trim();
       }
 
-      const json = (await response.json()) as any;
-      const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text || typeof text !== "string") {
-        throw new AiServiceError(
-          "Dịch vụ AI không trả về nội dung tóm tắt hợp lệ.",
-          503,
-          "AI_SERVICE_UNAVAILABLE"
-        );
-      }
-      return text.trim();
+      throw new AiServiceError(
+        `Dịch vụ AI (Gemini) phản hồi lỗi (HTTP ${lastErrorStatus}). Vui lòng thử lại sau.`,
+        503,
+        "AI_SERVICE_UNAVAILABLE"
+      );
     }
 
     if (provider === "openai") {

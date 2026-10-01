@@ -106,27 +106,38 @@ Bài tập về nhà: Sinh viên chuẩn bị bài thuyết trình 3 phút về 
 ⏳ Đang gửi yêu cầu tới dịch vụ AI...
 
 ==================================================================
-✅ GỌI AI THÀNH CÔNG (Thời gian phản hồi: 1420ms)
+✅ GỌI AI THÀNH CÔNG (Thời gian phản hồi: 7944ms)
 ==================================================================
 🤖 BẢN TÓM TẮT TỪ AI:
 
-**Tóm tắt nội dung Workshop Kỹ năng Thuyết trình:**
+Chào các bạn sinh viên! Dưới đây là bản tóm tắt ngắn gọn, súc tích từ buổi **Workshop Kỹ năng thuyết trình (Phòng A1.01)** giúp các bạn dễ dàng ôn tập và áp dụng:
 
-1. **Cấu trúc bài nói (Why - What - How):**
-   - Bắt đầu với lý do thu hút người nghe (Why).
-   - Trình bày giải pháp/nội dung chính (What).
-   - Hướng dẫn phương pháp thực hiện cụ thể (How).
+---
 
-2. **Kỹ năng trình bày & Ngôn ngữ cơ thể:**
-   - Duy trì eye-contact tối thiểu 3 giây mỗi khu vực khán giả.
-   - Điều chỉnh ngữ điệu linh hoạt để tạo sự lôi cuốn.
+### 📌 3 NỘI DUNG CHÍNH CẦN NẮM VỮNG
 
-3. **Thiết kế Slide hiệu quả:**
-   - Áp dụng nguyên tắc "1 ý tưởng / 1 slide".
-   - Ưu tiên hình ảnh thực tế, giới hạn tối đa 6 dòng chữ/slide.
+#### 1. Cấu trúc bài nói: Mô hình "Why - What - How"
+*   **Why:** Bắt đầu bằng lý do vì sao khán giả nên quan tâm.
+*   **What:** Đưa ra giải pháp/nội dung cốt lõi.
+*   **How:** Hướng dẫn cách thức thực thi chi tiết.
 
-📌 **Hành động cần làm:**
-- Chuẩn bị bài thuyết trình nhóm 3 phút cho buổi học tuần kế tiếp.
+#### 2. Kỹ năng tương tác & Giọng điệu
+*   **Ánh mắt (Eye-contact):** Duy trì tương tác mắt ít nhất **3 giây/vùng** để kết nối với toàn bộ khán phòng.
+*   **Giọng nói:** Kiểm soát ngữ điệu linh hoạt, tránh tông giọng đều đều gây buồn ngủ.
+
+#### 3. Thiết kế Slide tối giản
+*   **Bố cục:** Áp dụng nguyên tắc **1 ý tưởng/slide**.
+*   **Nội dung:** Tối đa **6 dòng chữ/slide**, ưu tiên sử dụng hình ảnh minh họa thực tế thay vì quá nhiều chữ.
+
+---
+
+### 🚨 HÀNH ĐỘNG CẦN LÀM NGAY (BÀI TẬP VỀ NHÀ)
+*   **Nhiệm vụ:** Chuẩn bị **bài thuyết trình 3 phút** về đề tài nhóm.
+*   **Hạn chót:** Buổi học tuần tới.
+*   **Yêu cầu:** Áp dụng ngay 3 kiến thức vừa học ở trên (Cấu trúc Why-What-How, slide tối giản và tương tác tốt khi nói).
+
+Chúc các bạn có một bài thuyết trình nhóm thật bùng nổ vào tuần tới!
+
 ==================================================================
 ```
 

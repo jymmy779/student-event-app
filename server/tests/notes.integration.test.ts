@@ -150,6 +150,50 @@ describe("PUT /events/:id/note", () => {
     });
     expect(hackerNote).toBeNull();
   });
+
+  it("isolates notes between different users so one user cannot read or overwrite another user's note", async () => {
+    const OTHER_USER = {
+      id: "user-other-student",
+      name: "Sinh viên khác",
+      email: "other@student.university.edu.vn",
+    };
+    await prisma.user.create({ data: OTHER_USER });
+
+    // User khác đã có note từ trước cho cùng event này
+    await prisma.note.create({
+      data: {
+        userId: OTHER_USER.id,
+        eventId: testEvent.id,
+        content: "Ghi chú riêng của User khác",
+        summary: "Tóm tắt của User khác",
+      },
+    });
+
+    // Demo user kiểm tra note của mình -> phải trả về null vì demo user chưa tạo note
+    const getRes = await request(app)
+      .get(`/events/${testEvent.id}/note`)
+      .expect(200);
+    expect(getRes.body.data).toBeNull();
+
+    // Demo user tạo note của mình
+    const putRes = await request(app)
+      .put(`/events/${testEvent.id}/note`)
+      .send({ content: "Ghi chú riêng của Demo User" })
+      .expect(200);
+    expect(putRes.body.data.content).toBe("Ghi chú riêng của Demo User");
+
+    // Đảm bảo cả 2 note tồn tại độc lập trong DB, không ghi đè lẫn nhau
+    const otherDbNote = await prisma.note.findUnique({
+      where: { userId_eventId: { userId: OTHER_USER.id, eventId: testEvent.id } },
+    });
+    expect(otherDbNote?.content).toBe("Ghi chú riêng của User khác");
+    expect(otherDbNote?.summary).toBe("Tóm tắt của User khác");
+
+    const demoDbNote = await prisma.note.findUnique({
+      where: { userId_eventId: { userId: DEMO_USER.id, eventId: testEvent.id } },
+    });
+    expect(demoDbNote?.content).toBe("Ghi chú riêng của Demo User");
+  });
 });
 
 describe("GET /events/:id/note", () => {
@@ -293,10 +337,11 @@ describe("POST /events/:id/summarize", () => {
     expect(response.body.data).toBeNull();
     expect(response.body.error.code).toBe("AI_SERVICE_UNAVAILABLE");
 
-    // Đảm bảo không sinh dữ liệu tóm tắt giả trong DB
+    // Đảm bảo không sinh dữ liệu tóm tắt giả trong DB và nội dung note gốc vẫn được giữ nguyên
     const dbNote = await prisma.note.findUnique({
       where: { userId_eventId: { userId: DEMO_USER.id, eventId: testEvent.id } },
     });
+    expect(dbNote?.content).toBe("Ghi chú kiểm tra lỗi AI 500");
     expect(dbNote?.summary).toBeNull();
 
     fetchSpy.mockRestore();
@@ -320,10 +365,11 @@ describe("POST /events/:id/summarize", () => {
     expect(response.body.data).toBeNull();
     expect(response.body.error.code).toBe("AI_TIMEOUT");
 
-    // Đảm bảo không sinh dữ liệu tóm tắt giả trong DB
+    // Đảm bảo không sinh dữ liệu tóm tắt giả trong DB và nội dung note gốc vẫn được giữ nguyên
     const dbNote = await prisma.note.findUnique({
       where: { userId_eventId: { userId: DEMO_USER.id, eventId: testEvent.id } },
     });
+    expect(dbNote?.content).toBe("Ghi chú kiểm tra lỗi timeout");
     expect(dbNote?.summary).toBeNull();
 
     fetchSpy.mockRestore();

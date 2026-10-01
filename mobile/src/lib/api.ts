@@ -30,6 +30,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   events: (query = "") => request<EventItem[]>(`/events${query ? `?q=${encodeURIComponent(query)}` : ""}`),
+  getEvent: (id: string) => request<EventItem>(`/events/${id}`),
   getNote: (eventId: string) => request<NoteItem | null>(`/events/${eventId}/note`),
   saveNote: (eventId: string, content: string) =>
     request<NoteItem>(`/events/${eventId}/note`, {

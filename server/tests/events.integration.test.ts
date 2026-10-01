@@ -42,3 +42,18 @@ describe("GET /events", () => {
     expect(response.body.data[0].id).toBe("event-1");
   });
 });
+
+describe("GET /events/:id", () => {
+  it("returns single event details", async () => {
+    await prisma.event.createMany({ data: events });
+    const response = await request(app).get("/events/event-1").expect(200);
+    expect(response.body.error).toBeNull();
+    expect(response.body.data).toMatchObject({ id: "event-1", title: "Workshop thuyết trình" });
+  });
+
+  it("returns 404 when event does not exist", async () => {
+    const response = await request(app).get("/events/non-existent").expect(404);
+    expect(response.body.error).toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+

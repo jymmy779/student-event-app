@@ -196,14 +196,35 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 
 ## 5. API hiện có
 
-| Method | Endpoint | Chức năng |
-| --- | --- | --- |
-| GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu |
-| GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
+| Method | Endpoint | Chức năng | Phụ trách |
+| --- | --- | --- | --- |
+| GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu | Baseline (Thái) |
+| GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa | Baseline (Thái) |
+| GET | `/events/:id` | Lấy thông tin chi tiết một sự kiện | Mốc 3 (Kha) |
+| PUT | `/events/:id/note` | Lưu hoặc cập nhật ghi chú sự kiện (tối đa 5.000 ký tự) | Mốc 3 (Kha) |
+| GET | `/events/:id/note` | Lấy ghi chú và bản tóm tắt AI đã lưu của sự kiện | Mốc 3 (Kha) |
+| POST | `/events/:id/summarize` | Gọi AI từ server để tóm tắt nội dung ghi chú và lưu vào DB | Mốc 3 (Kha) |
 
-Các endpoint chi tiết, đăng ký, hủy và lịch cá nhân chưa có trong baseline; Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
+Các endpoint đăng ký, hủy và lịch cá nhân do Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
 
-Response thành công hiện trả một mảng trong `data`:
+### Cấu hình AI Tóm tắt ghi chú (Mốc 3 - Lê Thanh Kha)
+
+Backend hỗ trợ tích hợp với các mô hình AI: **Google Gemini (khuyên dùng)**, **OpenAI** hoặc **Anthropic Claude**.
+
+1. Mở file `server/.env` và thêm API key:
+   ```dotenv
+   AI_API_KEY=AIzaSy...
+   ```
+   *(Hoặc đặt tên biến tương ứng: `GEMINI_API_KEY`, `OPENAI_API_KEY`)*
+2. Lấy API key Google Gemini miễn phí tại: [Google AI Studio](https://aistudio.google.com/app/apikey).
+3. Kiểm tra gọi AI thật từ terminal:
+   ```bash
+   cd server
+   npm run test:ai
+   ```
+4. **Quy tắc an toàn dữ liệu**: Nếu chưa có API key hoặc dịch vụ AI gặp sự cố (mã 503), hệ thống trả về thông báo lỗi rõ ràng và **tuyệt đối không sinh dữ liệu tóm tắt giả**. Nội dung ghi chú của sinh viên luôn được bảo toàn nguyên vẹn trong cơ sở dữ liệu.
+
+Response thành công hiện trả một mảng hoặc đối tượng trong `data`:
 
 ```json
 {

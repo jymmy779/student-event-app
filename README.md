@@ -1,5 +1,7 @@
 # Student Event App
 
+Theo dõi phân công hiện hành, phụ thuộc và nhật ký triển khai tại [docs/PROGRESS.md](./docs/PROGRESS.md).
+
 Ứng dụng quản lý sự kiện sinh viên gồm:
 
 - Mobile: Expo, React Native, TypeScript và Expo Router.
@@ -200,8 +202,11 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 | --- | --- | --- |
 | GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu |
 | GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
+| GET | `/events/:id` | Lấy thông tin chi tiết công khai của một sự kiện |
 
-Các endpoint chi tiết, đăng ký, hủy và lịch cá nhân chưa có trong baseline; Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
+Các endpoint đăng ký, hủy và lịch cá nhân chưa có trong baseline; Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
+
+API danh sách và chi tiết không trả `qrToken`; token chỉ được sử dụng trong luồng check-in phía server.
 
 Response thành công hiện trả một mảng trong `data`:
 

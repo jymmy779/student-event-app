@@ -208,7 +208,7 @@ Các endpoint đăng ký, hủy và lịch cá nhân chưa có trong baseline; Q
 
 API danh sách và chi tiết không trả `qrToken`; token chỉ được sử dụng trong luồng check-in phía server.
 
-Response thành công hiện trả một mảng trong `data`:
+API danh sách trả một mảng trong `data`:
 
 ```json
 {
@@ -222,6 +222,22 @@ Response thành công hiện trả một mảng trong `data`:
       "endsAt": "2026-10-10T09:30:00.000Z"
     }
   ],
+  "error": null
+}
+```
+
+API chi tiết trả một sự kiện trong `data`:
+
+```json
+{
+  "data": {
+    "id": "event-future-tech",
+    "title": "Seminar Công nghệ và AI",
+    "description": "...",
+    "location": "Phòng B2.02",
+    "startsAt": "2026-10-10T06:30:00.000Z",
+    "endsAt": "2026-10-10T09:30:00.000Z"
+  },
   "error": null
 }
 ```
@@ -286,8 +302,8 @@ Bảng này là phân công triển khai trong repository. File đăng ký đề
 
 | Thành viên | Luồng tính năng sở hữu | Code và tài liệu phải bàn giao |
 | --- | --- | --- |
-| **Lương Việt Thái** | **Khám phá sự kiện và tích hợp ứng dụng** | Mobile danh sách/tìm kiếm/loading/error/empty; `GET /events?q=`; navigation và API client dùng chung; integration test tìm kiếm; tài liệu cài đặt, API contract và checklist tích hợp |
-| **Trần Chí Quốc** | **Chi tiết, đăng ký và lịch cá nhân** | Màn chi tiết và tab Lịch; API chi tiết/đăng ký/hủy/lịch; phần schema `Registration`; test đăng ký lặp, hủy, chặn hủy sau check-in và persistence; tài liệu luồng đăng ký |
+| **Lương Việt Thái** | **Khám phá, chi tiết sự kiện và tích hợp ứng dụng** | Mobile danh sách/tìm kiếm/chi tiết/loading/error/empty; `GET /events?q=` và `GET /events/:id`; navigation, safe area và API client dùng chung; integration test danh sách/tìm kiếm/chi tiết; tài liệu cài đặt, API contract và checklist tích hợp |
+| **Trần Chí Quốc** | **Đăng ký và lịch cá nhân** | Component thao tác đăng ký trên màn chi tiết và tab Lịch; API đăng ký/hủy/lịch; demo user và phần schema `Registration`; test đăng ký lặp, hủy, chặn hủy sau check-in và persistence; tài liệu luồng đăng ký |
 | **Phạm Tấn Đạt** | **QR check-in** | Màn camera/quét QR và xử lý quyền; API check-in; token và `checkedInAt` trong DB; test token sai, chưa đăng ký, lặp, đúng/ngoài giờ và request đồng thời; nhật ký và hướng dẫn test QR trên máy thật |
 | **Lê Thanh Kha** | **Ghi chú và tóm tắt AI** | Màn nhập/xem ghi chú; API lưu/đọc note và gọi AI; phần schema `Note`; validation nội dung; test note rỗng/quá dài, quyền sở hữu, AI success/timeout/error; tài liệu cấu hình khóa AI và bằng chứng gọi thật |
 | **Chu Anh Khôi** | **Nhắc giờ, công cụ demo và phát hành** | Local notification khi đăng ký/hủy; trạng thái từ chối quyền; script/trang tạo QR cho 3 event mẫu; test logic lên/hủy lịch; UI polish/animation; EAS Build/APK; tài liệu build, ảnh, video và slide demo |
@@ -301,7 +317,7 @@ Bảng này là phân công triển khai trong repository. File đăng ký đề
 - Mỗi nhánh chỉ tập trung một tính năng, ví dụ `feature/qr-check-in` hoặc `feature/ai-notes`.
 - Trước khi gửi pull request hoặc merge: chạy typecheck, lint phần mobile, build/test phần server có liên quan và ghi kết quả thật.
 - Không merge khi test đang fail. Phần chưa thử trên điện thoại phải ghi `NOT RUN`, không tự đánh dấu pass.
-- Thái chịu trách nhiệm tích hợp/review chung và luồng Khám phá, không mặc định làm thay code, test hoặc tài liệu chưa hoàn thành của thành viên khác.
+- Thái chịu trách nhiệm tích hợp/review chung và luồng Khám phá → Chi tiết, không mặc định làm thay code, test hoặc tài liệu chưa hoàn thành của thành viên khác.
 - Khi API contract hoặc schema thay đổi, người thay đổi phải báo nhóm và cập nhật README/spec/test trong cùng pull request.
 
 ## 9. Lỗi thường gặp

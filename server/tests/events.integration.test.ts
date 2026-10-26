@@ -41,4 +41,44 @@ describe("GET /events", () => {
     expect(response.body.data).toHaveLength(1);
     expect(response.body.data[0].id).toBe("event-1");
   });
+
+  it("does not expose QR tokens in the event list", async () => {
+    await prisma.event.createMany({ data: events });
+    const response = await request(app).get("/events").expect(200);
+
+    expect(response.body.data[0]).not.toHaveProperty("qrToken");
+  });
+});
+
+describe("GET /events/:id", () => {
+  it("returns a public event detail", async () => {
+    await prisma.event.create({ data: events[0]! });
+
+    const response = await request(app).get("/events/event-2").expect(200);
+
+    expect(response.body).toMatchObject({
+      data: {
+        id: "event-2",
+        title: "Ngày hội việc làm",
+        description: "Mô tả 2",
+        location: "Phòng 2",
+      },
+      error: null,
+    });
+    expect(response.body.data).not.toHaveProperty("qrToken");
+  });
+
+  it("returns a stable error when the event does not exist", async () => {
+    const response = await request(app)
+      .get("/events/missing-event")
+      .expect(404);
+
+    expect(response.body).toEqual({
+      data: null,
+      error: {
+        code: "EVENT_NOT_FOUND",
+        message: "Không tìm thấy sự kiện.",
+      },
+    });
+  });
 });

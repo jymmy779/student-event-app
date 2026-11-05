@@ -20,7 +20,7 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 | Thành viên | Phạm vi sở hữu | Branch đề xuất | Trạng thái | Phụ thuộc chính |
 | --- | --- | --- | --- | --- |
 | Lương Việt Thái | Khám phá, tìm kiếm, chi tiết sự kiện, navigation, API client và tích hợp chung | `Thai` | `HOÀN THÀNH` | Hợp đồng API dùng chung |
-| Trần Chí Quốc | Đăng ký, hủy đăng ký, lịch cá nhân, demo user và persistence | `feature/registration-schedule` | `CHƯA BẮT ĐẦU` | Chi tiết sự kiện và demo user |
+| Trần Chí Quốc | Đăng ký, hủy đăng ký, lịch cá nhân, demo user và persistence | `feature/registration-schedule` | `HOÀN THÀNH CODE — CHỜ TEST MÁY THẬT` | Chi tiết sự kiện và demo user |
 | Phạm Tấn Đạt | Camera, QR token, check-in và API check-in | `feature/qr-check-in` | `CHƯA BẮT ĐẦU` | Registration và quy ước QR token |
 | Lê Thanh Kha | Ghi chú, tóm tắt AI và xử lý lỗi AI | `feature/ai-notes` | `CHƯA BẮT ĐẦU` | Demo user, Event và cấu hình dịch vụ AI |
 | Chu Anh Khôi | Notification, công cụ QR demo, UI polish và build phát hành | `feature/notifications-release` | `CHƯA BẮT ĐẦU` | Đăng ký/hủy, QR token và các luồng đã tích hợp |
@@ -81,3 +81,9 @@ Mỗi pull request cần ghi:
 - Một thay đổi API hoặc schema phải cập nhật README/spec/test tương ứng.
 - Khi công việc bị chặn, ghi rõ người hoặc contract cần phối hợp; không chỉ ghi “đang chờ”.
 - Thái tổng hợp trạng thái chung nhưng mỗi thành viên tự chịu trách nhiệm về nội dung và bằng chứng của phần mình.
+
+## Cập nhật đăng ký và lịch cá nhân — 2026-11-05
+
+| Ngày | Thành viên | Việc thực hiện | Kết quả | Test và bằng chứng | Vướng mắc | Bước tiếp theo |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-05 | Trần Chí Quốc | Component đăng ký/hủy, tab Lịch, API cá nhân, demo user và persistence | Lưu SQLite; chống trùng; chặn hủy sau check-in | 20/20 integration test; chi tiết tại TEST_REPORT.md và docs/REGISTRATION_FLOW.md | Chưa xác nhận trên máy thật | Demo đăng ký/hủy và restart app; bàn giao điểm nối QR/notification |

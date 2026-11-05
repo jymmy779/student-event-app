@@ -6,7 +6,7 @@ Theo dõi phân công hiện hành, phụ thuộc và nhật ký triển khai t�
 
 - Mobile: Expo, React Native, TypeScript và Expo Router.
 - Backend: Node.js, Express, TypeScript, Prisma và SQLite.
-- Baseline hiện tại: danh sách và tìm kiếm sự kiện qua API thật. Chi tiết, đăng ký và lịch cá nhân được giao cho thành viên phụ trách triển khai lại.
+- Hiện có: danh sách/tìm kiếm, chi tiết, đăng ký/hủy và lịch cá nhân qua API thật, lưu SQLite tại backend.
 
 ## Yêu cầu môi trường
 
@@ -175,7 +175,7 @@ Nếu điện thoại không mở được JSON:
 
 ## 4. Dữ liệu hiện tại
 
-Schema nền đã có `User`, `Event`, `Registration` và `Note`. Baseline hiện chỉ seed 3 sự kiện; người phụ trách luồng đăng ký sẽ bổ sung demo user và logic persistence trong nhánh của mình.
+Schema đã có `User`, `Event`, `Registration` và `Note`. Seed tạo 3 sự kiện và tài khoản `demo-student`. API cá nhân luôn dùng demo user cố định phía server, bỏ qua userId do client gửi. Mọi thiết bị dùng chung lịch demo; chưa có đăng nhập tài khoản riêng.
 
 Muốn khôi phục hoặc bổ sung dữ liệu mẫu, chạy lại:
 
@@ -192,7 +192,7 @@ Từ thư mục `server/`, chạy:
 npx prisma studio
 ```
 
-Trình duyệt sẽ mở `http://localhost:5555`. Có thể xem trực tiếp các bảng `Event`, `User`, `Registration` và `Note`. Ở baseline hiện tại, `Event` có 3 sự kiện mẫu; các bảng còn lại có thể trống.
+Trình duyệt sẽ mở `http://localhost:5555`. Có thể xem trực tiếp các bảng `Event`, `User`, `Registration` và `Note`. Sau seed, `Event` có 3 sự kiện mẫu và `User` có tài khoản demo. `Registration` được tạo khi đăng ký qua app.
 
 Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác nhau. Dừng Studio bằng `Ctrl+C` khi không dùng nữa.
 
@@ -202,9 +202,12 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 | --- | --- | --- |
 | GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu |
 | GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
-| GET | `/events/:id` | Lấy thông tin chi tiết công khai của một sự kiện |
+| GET | `/events/:id` | Chi tiết công khai và registration của demo user |
+| POST | `/events/:id/register` | Đăng ký idempotent, trả registration hiện có khi lặp |
+| DELETE | `/events/:id/register` | Hủy nếu chưa check-in; đã check-in trả 409 |
+| GET | `/me/registrations` | Lịch demo user, kèm event công khai, theo giờ bắt đầu |
 
-Các endpoint đăng ký, hủy và lịch cá nhân chưa có trong baseline; Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
+Chi tiết luồng, API response, schema, demo identity, điểm nối QR/notification và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). POST không cần body; DELETE trả `{ data: { registered: false }, error: null }`. Thiếu demo user trả 503 `DEMO_USER_NOT_CONFIGURED`; chạy lại seed để cấu hình.
 
 API danh sách và chi tiết không trả `qrToken`; token chỉ được sử dụng trong luồng check-in phía server.
 
@@ -226,7 +229,7 @@ API danh sách trả một mảng trong `data`:
 }
 ```
 
-API chi tiết trả một sự kiện trong `data`:
+API chi tiết trả một sự kiện và trạng thái đăng ký trong `data` (`registration` là null nếu chưa đăng ký, hoặc `{ id, eventId, createdAt, checkedInAt }`):
 
 ```json
 {
@@ -236,7 +239,8 @@ API chi tiết trả một sự kiện trong `data`:
     "description": "...",
     "location": "Phòng B2.02",
     "startsAt": "2026-10-10T06:30:00.000Z",
-    "endsAt": "2026-10-10T09:30:00.000Z"
+    "endsAt": "2026-10-10T09:30:00.000Z",
+    "registration": null
   },
   "error": null
 }

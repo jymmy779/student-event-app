@@ -1,17 +1,9 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
+import { DEMO_USER } from "../demo-user.js";
+import { publicEventSelect, publicRegistrationSelect } from "../public-select.js";
 
 export const eventsRouter = Router();
-
-const publicEventSelect = {
-  id: true,
-  title: true,
-  description: true,
-  location: true,
-  startsAt: true,
-  endsAt: true,
-  createdAt: true,
-} as const;
 
 eventsRouter.get("/events", async (request, response, next) => {
   try {
@@ -46,7 +38,11 @@ eventsRouter.get("/events/:id", async (request, response, next) => {
       return;
     }
 
-    response.json({ data: event, error: null });
+    const registration = await prisma.registration.findUnique({
+      where: { userId_eventId: { userId: DEMO_USER.id, eventId: event.id } },
+      select: publicRegistrationSelect,
+    });
+    response.json({ data: { ...event, registration }, error: null });
   } catch (error) {
     next(error);
   }

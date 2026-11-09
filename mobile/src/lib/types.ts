@@ -10,3 +10,13 @@ export type EventItem = {
   endsAt: string;
   createdAt: string;
 };
+
+export type Registration = {
+  id: string;
+  eventId: string;
+  createdAt: string;
+  checkedInAt: string | null;
+};
+
+export type EventDetail = EventItem & { registration: Registration | null };
+export type ScheduledRegistration = Registration & { event: EventItem };

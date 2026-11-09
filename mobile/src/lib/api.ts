@@ -1,4 +1,4 @@
-import type { ApiResponse, EventItem } from "./types";
+import type { ApiResponse, EventDetail, EventItem, Registration, ScheduledRegistration } from "./types";
 
 const configuredUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -50,5 +50,10 @@ export const api = {
       `/events${query ? `?q=${encodeURIComponent(query)}` : ""}`,
     ),
   event: (id: string) =>
-    request<EventItem>(`/events/${encodeURIComponent(id)}`),
+    request<EventDetail>(`/events/${encodeURIComponent(id)}`),
+  register: (id: string) =>
+    request<Registration>(`/events/${encodeURIComponent(id)}/register`, { method: "POST" }),
+  cancelRegistration: (id: string) =>
+    request<{ registered: false }>(`/events/${encodeURIComponent(id)}/register`, { method: "DELETE" }),
+  registrations: () => request<ScheduledRegistration[]>("/me/registrations"),
 };

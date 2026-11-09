@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { DEMO_USER } from "../src/demo-user.js";
 
 const prisma = new PrismaClient();
 const events = [
@@ -8,10 +9,11 @@ const events = [
 ] as const;
 
 async function main() {
+  await prisma.user.upsert({ where: { id: DEMO_USER.id }, update: {}, create: DEMO_USER });
   for (const event of events) {
     await prisma.event.upsert({ where: { id: event.id }, update: event, create: event });
   }
-  console.log(`Seeded ${events.length} events (idempotent upsert).`);
+  console.log(`Seeded demo user and ${events.length} events (idempotent upsert).`);
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; }).finally(() => prisma.$disconnect());

@@ -3,13 +3,14 @@ import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorState, LoadingState } from "@/components/ScreenState";
+import { RegistrationActions } from "@/components/RegistrationActions";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/format";
-import type { EventItem } from "@/lib/types";
+import type { EventDetail } from "@/lib/types";
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [event, setEvent] = useState<EventItem | null>(null);
+  const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -81,6 +82,15 @@ export default function EventDetailScreen() {
             </View>
           </View>
 
+          <View style={styles.registration}>
+            <RegistrationActions
+              key={event.id}
+              eventId={event.id}
+              registration={event.registration}
+              onChange={(registration) => setEvent((current) => current ? { ...current, registration } : current)}
+            />
+          </View>
+
           <Text style={styles.sectionTitle}>Mô tả</Text>
           <Text style={styles.description}>{event.description}</Text>
         </ScrollView>
@@ -92,6 +102,7 @@ export default function EventDetailScreen() {
 const styles = StyleSheet.create({
   screen: { backgroundColor: "#f5f7fb", flex: 1 },
   content: { padding: 20, paddingBottom: 36 },
+  registration: { backgroundColor: "#fff", borderRadius: 16, marginTop: 20, padding: 18 },
   eyebrow: {
     color: "#1d4ed8",
     fontSize: 12,

@@ -1,5 +1,11 @@
 # Báo cáo kiểm thử Student Event App
 
+## Ghi chú và tóm tắt AI — báo cáo từ nhánh Kha
+
+PR của Kha ghi nhận 14 test Note/AI trong tổng 20 integration test, cùng các trường hợp lưu/đọc ghi chú, giới hạn nội dung, cô lập dữ liệu theo user, lỗi Gemini và timeout. Báo cáo gốc cũng ghi nhận typecheck/build server, typecheck/lint/export mobile và một lần gọi Gemini thật đạt.
+
+Các kết quả trên được ghi nhận trước khi đổi cơ chế định danh từ `x-user-id`/demo user sang bearer session. Test đã được cập nhật để dùng session; cần chạy lại bộ kiểm thử sau khi tích hợp trước khi coi các kết quả này là đã xác nhận trên nhánh hợp nhất.
+
 ## Kết quả ngày 2026-11-05 — Đăng ký và lịch cá nhân
 
 Phạm vi Trần Chí Quốc: API đăng ký/hủy/lịch, demo user, component dùng chung trên chi tiết và tab Lịch, persistence. Không triển khai QR, notification hoặc AI trong lần bàn giao này. Chưa tạo commit.
@@ -13,7 +19,7 @@ Môi trường: Windows, Node.js v22.16.0; Expo ~57.0.25, React Native 0.86.3, P
 | Server typecheck | `npm run typecheck` | PASS |
 | Server build | `npm run build` | PASS |
 | Server integration | `npm test` | PASS: 2 file, 20 test, 0 fail, 0 skip |
-| Seed idempotent | Seed hai lần trong integration test | PASS: giữ registration, 1 demo user, 3 event mẫu |
+| Seed idempotent | Seed hai lần trong integration test | PASS: giữ registration, các tài khoản mẫu và 3 event mẫu |
 | Persistence | Ngắt Prisma client, đọc từ client mới, API kết nối lại | PASS trên SQLite test |
 | Máy thật / Expo Go | Chưa thực hiện | NOT RUN — cần thiết bị Android/iOS |
 | Restart tiến trình app/server với UI | Chưa thực hiện | NOT RUN — test tự động mới kiểm tra persistence qua kết nối DB độc lập |

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorState, LoadingState } from "@/components/ScreenState";
 import { RegistrationActions } from "@/components/RegistrationActions";
@@ -154,6 +154,32 @@ export default function EventDetailScreen() {
 
           <Text style={styles.sectionTitle}>Mô tả</Text>
           <Text style={styles.description}>{event.description}</Text>
+
+          <View style={styles.actionsContainer}>
+            <Text style={styles.sectionTitle}>Công cụ học tập</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Mở ghi chú và tóm tắt AI"
+              style={({ pressed }) => [
+                styles.noteCard,
+                pressed && styles.noteCardPressed,
+              ]}
+              onPress={() => router.push(`/notes/${event.id}`)}
+            >
+              <View style={styles.noteCardContent}>
+                <View style={styles.iconBadge}>
+                  <Text style={styles.noteIcon}>✨</Text>
+                </View>
+                <View style={styles.noteInfo}>
+                  <Text style={styles.noteCardTitle}>Ghi chú & Tóm tắt AI</Text>
+                  <Text style={styles.noteCardSubtitle}>
+                    Lưu nội dung bài giảng và tạo tóm tắt thông minh với Gemini AI
+                  </Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </Pressable>
+          </View>
         </ScrollView>
       ) : null}
     </SafeAreaView>
@@ -251,5 +277,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 25,
     marginTop: 10,
+  },
+  actionsContainer: {
+    marginTop: 12,
+  },
+  noteCard: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
+    borderRadius: 16,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 16,
+  },
+  noteCardPressed: {
+    backgroundColor: "#dbeafe",
+  },
+  noteCardContent: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+  },
+  iconBadge: {
+    alignItems: "center",
+    backgroundColor: "#dbeafe",
+    borderRadius: 12,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
+  noteIcon: {
+    fontSize: 22,
+  },
+  noteInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  noteCardTitle: {
+    color: "#1e3a8a",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  noteCardSubtitle: {
+    color: "#3b82f6",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  chevron: {
+    color: "#2563eb",
+    fontSize: 24,
+    fontWeight: "600",
   },
 });

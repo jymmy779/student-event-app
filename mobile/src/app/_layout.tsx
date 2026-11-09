@@ -28,6 +28,7 @@ function RootNavigator() {
     <Stack.Screen name="organizer/event-form" options={{ title: "Quản lý sự kiện" }} />
     <Stack.Screen name="organizer/events/[id]/stats" options={{ title: "Thống kê sự kiện" }} />
     <Stack.Screen name="events/[id]" options={{ title: "Chi tiết sự kiện" }} />
+    <Stack.Screen name="notes/[eventId]" options={{ title: "Ghi chú & Tóm tắt AI" }} />
     <Stack.Screen name="account/edit-profile" options={{ title: "Thông tin cá nhân" }} />
     <Stack.Screen name="account/security" options={{ title: "Bảo mật" }} />
     <Stack.Screen name="account/help" options={{ title: "Hướng dẫn và hỗ trợ" }} />

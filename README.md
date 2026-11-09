@@ -6,13 +6,13 @@ Theo dõi phân công hiện hành, phụ thuộc và nhật ký triển khai t�
 
 - Mobile: Expo, React Native, TypeScript và Expo Router.
 - Backend: Node.js, Express, TypeScript, Prisma và SQLite.
-- Hiện có: danh sách/tìm kiếm, chi tiết, đăng ký/hủy và lịch cá nhân qua API thật, lưu SQLite tại backend.
+- Hiện có: khám phá và chi tiết sự kiện, đăng nhập/session, quản lý sự kiện cho organizer, đăng ký/lịch cá nhân và ghi chú/tóm tắt AI qua API backend.
 
 ## Yêu cầu môi trường
 
 - Node.js 20 hoặc 22 LTS.
 - npm.
-- Expo Go tương thích Expo SDK 57 nếu chạy trên điện thoại thật.
+- Expo Go tương thích Expo SDK 58 nếu chạy trên điện thoại thật.
 - Điện thoại và máy tính cùng mạng Wi-Fi khi thử qua LAN.
 
 Kiểm tra môi trường:
@@ -56,6 +56,8 @@ Nội dung mặc định của `server/.env`:
 DATABASE_URL="file:./dev.db"
 PORT=3000
 ORGANIZER_INVITE_CODE="ma-moi-rieng-tu"
+GEMINI_API_KEY=""
+# GEMINI_MODEL="gemini-3.5-flash-lite"
 ```
 
 Tạo SQLite database, áp migration và seed 3 sự kiện:
@@ -223,12 +225,15 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 | PATCH | `/me/profile` | Cập nhật tên và email, role chỉ đọc |
 | PATCH | `/me/password` | Đổi mật khẩu, kết thúc các phiên khác |
 | GET | `/me/stats` | Thống kê đăng ký, check-in, sự kiện sắp tới và số event đã tạo |
+| GET | `/events/:id/note` | Lấy ghi chú và tóm tắt AI của tài khoản đang đăng nhập |
+| PUT | `/events/:id/note` | Lưu hoặc cập nhật ghi chú (tối đa 5.000 ký tự) |
+| POST | `/events/:id/summarize` | Tóm tắt ghi chú bằng Gemini AI |
 | POST | `/organizer/events` | Organizer tạo sự kiện và QR token riêng |
 | GET | `/organizer/events` | Danh sách sự kiện do organizer tạo |
 | GET | `/organizer/events/:id/stats` | Số đăng ký, check-in, chưa check-in và tỷ lệ tham dự |
 | PATCH | `/organizer/events/:id/visibility` | Organizer ẩn/hiện sự kiện của mình |
 
-Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API người dùng yêu cầu bearer token sau khi đăng nhập.
+Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). Hướng dẫn cấu hình Gemini và API ghi chú: [docs/AI_NOTE_SETUP.md](./docs/AI_NOTE_SETUP.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API cá nhân và ghi chú yêu cầu bearer token sau khi đăng nhập.
 
 API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer lúc tạo event để phần QR/check-in tích hợp sau này.
 

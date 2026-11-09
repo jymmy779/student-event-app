@@ -27,3 +27,12 @@ export type Registration = {
 
 export type EventDetail = EventItem & { registration: Registration | null };
 export type ScheduledRegistration = Registration & { event: EventItem };
+
+export type NoteItem = {
+  id: string;
+  userId: string;
+  eventId: string;
+  content: string;
+  summary: string | null;
+  updatedAt: string;
+};

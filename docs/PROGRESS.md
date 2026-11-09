@@ -21,30 +21,9 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 | --- | --- | --- | --- | --- |
 | Lương Việt Thái | Khám phá/tìm kiếm/chi tiết; tài khoản và hồ sơ; quyền organizer; tạo/sửa/ẩn event, sức chứa, hạn đăng ký, hình thức, thống kê; layout và tích hợp chung | `Thai` | `ĐANG LÀM — CHỜ KIỂM TRA` | Hợp đồng API, migration và tích hợp với registration/QR |
 | Trần Chí Quốc | Đăng ký/hủy đăng ký, lịch cá nhân, component đăng ký và persistence | `feature/quoc-registration-schedule` | `CẦN TÍCH HỢP VÀ KIỂM TRA` | Session user, hạn đăng ký/sức chứa và QR/check-in |
-| Phạm Tấn Đạt | Camera, QR token, check-in và API check-in | `feature/dat-qr-checkin` | `ĐANG LÀM` | Registration, session user và event ownership |
-| Lê Thanh Kha | Ghi chú, tóm tắt AI và xử lý lỗi AI | `feature/kha-notes-ai` | `ĐANG LÀM` | Session user, Event và cấu hình dịch vụ AI |
-| Chu Anh Khôi | Notification, công cụ QR demo, UI polish và build phát hành | `feature/khoi-notifications-release` | `ĐANG LÀM` | Đăng ký/hủy, QR token và các luồng đã tích hợp |
-
-## Quan hệ phụ thuộc
-
-1. Thái chốt route chi tiết sự kiện, API client, kiểu dữ liệu và định dạng lỗi dùng chung.
-2. Quốc chốt demo user và luồng đăng ký/hủy trước khi Đạt và Khôi tích hợp.
-3. Đạt thống nhất cấu trúc QR token với Khôi trước khi làm công cụ tạo QR demo.
-4. Kha có thể làm song song sau khi chốt `userId`, `eventId` và hợp đồng API.
-5. Khôi chỉ bắt đầu build phát hành sau khi các luồng chính đã merge và kiểm thử tích hợp.
-
-## Checklist tích hợp chung
-
-- [ ] Chốt demo user và cách xác định current user.
-- [ ] Chốt API contract và error code trong spec.
-- [ ] Mỗi tính năng có loading, error và empty state phù hợp.
-- [ ] Khóa thao tác lặp đối với đăng ký, hủy, check-in và gửi yêu cầu AI.
-- [ ] Không tạo mock data riêng trong từng màn hình.
-- [ ] Backend typecheck, build và test đều đạt.
-- [ ] Mobile typecheck và lint đều đạt.
-- [ ] Kiểm thử các luồng quan trọng trên thiết bị thật.
-- [ ] Ghi lại ảnh, video hoặc log làm bằng chứng.
-- [ ] Cập nhật README, spec và tài liệu API khi contract thay đổi.
+| Phạm Tấn Đạt | Camera, QR token, check-in và API check-in | `Dat` | `ĐANG LÀM` | Registration, session user và event ownership |
+| Lê Thanh Kha | Ghi chú, tóm tắt AI và xử lý lỗi AI | `kha` | `ĐANG LÀM` | Session user, Event và cấu hình dịch vụ AI |
+| Chu Anh Khôi | Notification, công cụ QR demo, UI polish và build phát hành | `Khoi` | `ĐANG LÀM` | Đăng ký/hủy, QR token và các luồng đã tích hợp |
 
 ## Bảng cập nhật của thành viên
 
@@ -120,4 +99,8 @@ Bảng này thay thế bảng phân công hiện hành ở đầu file sau khi t
 
 ### Trạng thái nhánh
 
-Workspace đang ở nhánh local `Thai`, dựa trên `main` hiện tại. `origin/Thai` là tổ tiên của `main`; nhánh local ahead 4 commit so với `origin/Thai`, gồm lịch sử đã có trên `main`. Các thay đổi trong workspace vẫn chưa commit. Chưa push nhánh.
+Phần tài khoản và organizer của Thái đã được merge vào `main` qua PR #4. Nhánh `kha` đang tích hợp `main` mới để chuyển ghi chú sang bearer session; chưa push bản tích hợp này.
+
+## Tích hợp ghi chú và tóm tắt AI của Kha — 2026-11-09
+
+Đã ghép route và màn hình ghi chú AI vào luồng đăng nhập hiện tại. API ghi chú dùng `request.user.id` từ bearer session, không nhận `x-user-id` và không tự tạo user giả. Đã cập nhật client/API types, cấu hình `GEMINI_API_KEY`, hướng dẫn và test để tạo session khi kiểm tra quyền sở hữu. Chưa chạy test/typecheck hoặc kiểm thử trên điện thoại sau tích hợp; cần xác nhận lại cả note API và đăng nhập.

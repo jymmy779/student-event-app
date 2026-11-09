@@ -19,11 +19,11 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 
 | Thành viên | Phạm vi sở hữu | Branch đề xuất | Trạng thái | Phụ thuộc chính |
 | --- | --- | --- | --- | --- |
-| Lương Việt Thái | Khám phá/tìm kiếm/chi tiết; tài khoản và hồ sơ; quyền organizer; tạo/sửa/ẩn event, sức chứa, hạn đăng ký, hình thức, thống kê; layout và tích hợp chung | `Thai` | `ĐANG LÀM — CHỜ KIỂM TRA` | Hợp đồng API, migration và tích hợp với registration/QR |
-| Trần Chí Quốc | Đăng ký/hủy đăng ký, lịch cá nhân, component đăng ký và persistence | `feature/quoc-registration-schedule` | `CẦN TÍCH HỢP VÀ KIỂM TRA` | Session user, hạn đăng ký/sức chứa và QR/check-in |
-| Phạm Tấn Đạt | Camera, QR token, check-in và API check-in | `Dat` | `ĐANG LÀM` | Registration, session user và event ownership |
-| Lê Thanh Kha | Ghi chú, tóm tắt AI và xử lý lỗi AI | `kha` | `ĐANG LÀM` | Session user, Event và cấu hình dịch vụ AI |
-| Chu Anh Khôi | Notification, công cụ QR demo, UI polish và build phát hành | `Khoi` | `ĐANG LÀM` | Đăng ký/hủy, QR token và các luồng đã tích hợp |
+| Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung (đã triển khai) | `Thai` | `HỖ TRỢ REVIEW/TÍCH HỢP` | API dùng chung, migration và xác nhận luồng trên Expo Go |
+| Trần Chí Quốc | Đăng ký/hủy và lịch cá nhân | `feature/quoc-registration-schedule` | `ĐÃ CÓ PHẦN NỀN — TIẾP TỤC TÍCH HỢP` | Session user; phối hợp Đạt về check-in |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `ĐANG LÀM` | Registration/session của Quốc |
+| Lê Thanh Kha | Ghi chú/tóm tắt AI hiện tại; xem xét hướng hỏi đáp sau khi nhóm hội ý | `kha` | `GIỮ HIỆN TRẠNG — CHỜ HỘI Ý 10/11` | Gemini key và thống nhất phạm vi với nhóm |
+| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | `Khoi` | `ĐƯỢC GIAO — CHƯA TRIỂN KHAI` | Hình thức/ngày/trạng thái event; phối hợp Quốc về tình trạng đăng ký |
 
 ## Bảng cập nhật của thành viên
 
@@ -51,7 +51,7 @@ Mỗi pull request cần ghi:
 - File, migration hoặc API contract đã thêm hay thay đổi.
 - Các lệnh kiểm thử đã chạy cùng kết quả thật.
 - Trạng thái kiểm thử trên thiết bị thật.
-- Ảnh, video, log hoặc dữ liệu mẫu dùng để chứng minh.
+- Kết quả kiểm tra thực tế và dữ liệu mẫu cần để tái hiện chức năng.
 - Phụ thuộc hoặc lưu ý dành cho người tích hợp.
 
 ## Quy tắc cập nhật tài liệu
@@ -87,11 +87,11 @@ Bảng này thay thế bảng phân công hiện hành ở đầu file sau khi t
 
 | Thành viên | Phạm vi hiện tại | Tình trạng | Phối hợp / bước tiếp theo |
 | --- | --- | --- | --- |
-| Lương Việt Thái | Khám phá/tìm kiếm/chi tiết; đăng nhập, đăng ký, session và hồ sơ; quyền organizer; tạo/sửa/ẩn sự kiện, sức chứa, hạn đăng ký, hình thức, thống kê; layout và tài liệu tích hợp | Đã triển khai trong workspace; chưa chạy typecheck/test hoặc xác nhận trên điện thoại trong phiên này | Rà soát contract và migration cùng nhóm; bàn giao identity/session cho Quốc, Đạt và Kha |
-| Trần Chí Quốc | Đăng ký/hủy đăng ký, lịch cá nhân và component thao tác đăng ký | Phần nền đã có; cần tích hợp với xác thực theo tài khoản và chính sách hạn đăng ký/sức chứa mới | Dùng `request.user.id` làm user hiện tại; phối hợp Đạt để QR/check-in dùng cùng registration; chạy lại integration tests và xác nhận trên máy thật |
-| Phạm Tấn Đạt | QR token, camera và check-in | Theo phạm vi phân công; chưa xác nhận tích hợp với session mới | Phối hợp Quốc về registration/check-in và Thái về quyền organizer, event ownership |
-| Lê Thanh Kha | Ghi chú, tóm tắt AI và xử lý lỗi AI | Theo phạm vi phân công; cần kiểm tra tương thích với xác thực tài khoản | Lấy user từ session; phối hợp Thái về API và quyền truy cập |
-| Chu Anh Khôi | Notification, công cụ QR demo, UI polish và build phát hành | Theo phạm vi phân công; chưa xác nhận tích hợp | Kiểm tra luồng sau đăng nhập và phối hợp Đạt về QR/check-in |
+| Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung | Phần chính đã triển khai; hỗ trợ review/tích hợp | Hỗ trợ các thành viên theo API/schema, không nhận đầu việc tính năng mới |
+| Trần Chí Quốc | Đăng ký/hủy đăng ký và lịch cá nhân | Phần nền đã có; cần xác nhận sau cập nhật auth/session | Dùng cùng registration/session với Đạt; phối hợp Khôi về trạng thái lọc đăng ký |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | Đang triển khai | Nối QR với registration, session và thời gian sự kiện |
+| Lê Thanh Kha | Ghi chú và tóm tắt AI hiện tại | Đã tích hợp; giữ hiện trạng đến buổi hội ý ngày 10/11 | Sau hội ý mới chốt có đổi AI sang hỏi đáp sự kiện hay không |
+| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | Đầu việc mới; chưa triển khai | Phối hợp Quốc về tình trạng đăng ký; làm modal xác nhận dùng chung |
 
 ### Tài khoản demo
 
@@ -99,8 +99,15 @@ Bảng này thay thế bảng phân công hiện hành ở đầu file sau khi t
 
 ### Trạng thái nhánh
 
-Phần tài khoản và organizer của Thái đã được merge vào `main` qua PR #4. Nhánh `kha` đang tích hợp `main` mới để chuyển ghi chú sang bearer session; chưa push bản tích hợp này.
+Phần tài khoản/organizer của Thái đã được merge qua PR #4; phần ghi chú/tóm tắt AI của Kha đã được merge qua PR #3 và dùng bearer session.
 
 ## Tích hợp ghi chú và tóm tắt AI của Kha — 2026-11-09
 
 Đã ghép route và màn hình ghi chú AI vào luồng đăng nhập hiện tại. API ghi chú dùng `request.user.id` từ bearer session, không nhận `x-user-id` và không tự tạo user giả. Đã cập nhật client/API types, cấu hình `GEMINI_API_KEY`, hướng dẫn và test để tạo session khi kiểm tra quyền sở hữu. Chưa chạy test/typecheck hoặc kiểm thử trên điện thoại sau tích hợp; cần xác nhận lại cả note API và đăng nhập.
+
+## Điều chỉnh phân công — 2026-11-09
+
+- Khôi nhận bộ lọc ngay trang Khám phá (hình thức, khoảng ngày, trạng thái sự kiện và tình trạng đăng ký), modal xác nhận thao tác và thông báo local.
+- Đạt phụ trách QR và check-in trọn luồng; Quốc tiếp tục đăng ký/hủy và lịch cá nhân.
+
+- Thái đã làm phần tài khoản/organizer; từ đây hỗ trợ tích hợp và review

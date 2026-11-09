@@ -7,11 +7,14 @@ import type { Registration } from "@/lib/types";
 type Props = {
   eventId: string;
   registration: Registration | null;
+  expired?: boolean;
+  full?: boolean;
+  registrationClosed?: boolean;
   onChange: (registration: Registration | null) => void;
 };
 
 // Mount with key={eventId} when the selected event can change.
-export function RegistrationActions({ eventId, registration, onChange }: Props) {
+export function RegistrationActions({ eventId, registration, expired = false, full = false, registrationClosed = false, onChange }: Props) {
   const [pending, setPending] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,10 +63,16 @@ export function RegistrationActions({ eventId, registration, onChange }: Props) 
   return (
     <View style={styles.container}>
       <Text style={styles.status}>
-        {registration?.checkedInAt ? "Đã check-in" : registration ? "Đã đăng ký" : "Chưa đăng ký"}
+        {registration?.checkedInAt ? "Đã check-in" : registration ? "Đã đăng ký" : expired ? "Đã hết hạn" : full ? "Đã đủ chỗ" : registrationClosed ? "Đã đóng đăng ký" : "Chưa đăng ký"}
       </Text>
       {registration?.checkedInAt ? (
         <Text style={styles.hint}>Check-in lúc {formatDate(registration.checkedInAt)}. Bạn không thể hủy đăng ký sau check-in.</Text>
+      ) : expired && !registration ? (
+        <Text style={styles.hint}>Sự kiện đã kết thúc, hiện không thể đăng ký thêm.</Text>
+      ) : full && !registration ? (
+        <Text style={styles.hint}>Sự kiện đã đủ số người tham gia.</Text>
+      ) : registrationClosed && !registration ? (
+        <Text style={styles.hint}>Đã qua hạn đăng ký sự kiện.</Text>
       ) : (
         <>
           <Text style={styles.hint}>

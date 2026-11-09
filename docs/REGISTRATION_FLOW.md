@@ -1,5 +1,9 @@
 # Đăng ký và lịch cá nhân — Trần Chí Quốc
 
+> **Cập nhật tích hợp 2026-11-09:** phần demo identity bên dưới là lịch sử của MVP ban đầu. Luồng hiện tại dùng bearer session và tài khoản cá nhân. Chạy `npm run db:deploy`; đăng nhập tại mobile để gọi endpoint chi tiết, đăng ký, hủy và `/me/registrations`. Organizer tạo tài khoản bằng mã `ORGANIZER_INVITE_CODE`. Các lượt đăng ký cũ vẫn gắn với user `demo-student`, không tự chuyển sang tài khoản vừa tạo.
+
+> **Trạng thái event:** event đã qua `endsAt` vẫn được giữ, tìm kiếm được và hiển thị badge “Đã hết hạn”; API từ chối đăng ký mới bằng `409 EVENT_ENDED`. Chỉ event mà organizer chủ động ẩn (`isHidden`) mới biến khỏi Khám phá/tìm kiếm. Bản ghi cũ và thống kê không bị xóa.
+
 ## Phạm vi
 
 Luồng: Khám phá → Chi tiết → Đăng ký tham gia → Lịch của tôi → Chi tiết hoặc Hủy đăng ký. Hai màn hình dùng chung `mobile/src/components/RegistrationActions.tsx`. Nút bị khóa khi gửi yêu cầu; hủy cần xác nhận và chỉ cập nhật UI sau khi API thành công. Các màn hình tải lại khi được focus; tab Lịch hỗ trợ kéo làm mới, loading/error/retry và empty state.

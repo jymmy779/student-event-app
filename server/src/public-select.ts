@@ -3,8 +3,12 @@ export const publicEventSelect = {
   title: true,
   description: true,
   location: true,
+  format: true,
   startsAt: true,
   endsAt: true,
+  registrationDeadline: true,
+  capacity: true,
+  remainingSlots: true,
   createdAt: true,
 } as const;
 

@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ScreenState";
 import { api } from "@/lib/api";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatEventFormat, getEventStatus } from "@/lib/format";
 import type { EventItem } from "@/lib/types";
 
 export default function ExploreScreen() {
@@ -49,8 +56,8 @@ export default function ExploreScreen() {
   );
 
   return (
-    <View style={styles.screen}>
-      <SafeAreaView edges={["top", "left", "right"]} style={styles.header}>
+    <SafeAreaView edges={["left", "right"]} style={styles.screen}>
+      <SafeAreaView edges={["top"]} style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.eyebrow}>STUDENT EVENTS</Text>
           <Text style={styles.heading}>Khám phá sự kiện</Text>
@@ -101,9 +108,32 @@ export default function ExploreScreen() {
                 pressed && styles.cardPressed,
               ]}
             >
-              <Text style={styles.cardTitle}>{item.title}</Text>
+              <View style={styles.titleRow}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                {getEventStatus(item) && (
+                  <Text
+                    style={[styles.statusBadge, styles[getEventStatus(item)!]]}
+                  >
+                    {getEventStatus(item) === "expired"
+                      ? "Đã hết hạn"
+                      : getEventStatus(item) === "ongoing"
+                        ? "Đang diễn ra"
+                        : "Mới"}
+                  </Text>
+                )}
+              </View>
               <Text style={styles.meta}>{formatDate(item.startsAt)}</Text>
               <Text style={styles.meta}>📍 {item.location}</Text>
+              <Text style={styles.meta}>{formatEventFormat(item.format)}</Text>
+              <View style={styles.slotRow}>
+                <Text style={styles.meta}>
+                  {`Còn ${item.remainingSlots}/${item.capacity} chỗ`}
+                  {item.remainingSlots <= 0 ? " · Đã đủ chỗ" : ""}
+                  {item.registrationDeadline
+                    ? ` · Hạn đăng ký ${formatDate(item.registrationDeadline)}`
+                    : ""}
+                </Text>
+              </View>
               <Text numberOfLines={2} style={styles.description}>
                 {item.description}
               </Text>
@@ -111,7 +141,7 @@ export default function ExploreScreen() {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -154,7 +184,40 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
   },
-  cardTitle: { color: "#172554", fontSize: 18, fontWeight: "700" },
+  cardTitle: {
+    color: "#172554",
+    flex: 1,
+    flexShrink: 1,
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  titleRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    flexWrap: "nowrap",
+    gap: 8,
+    minWidth: 0,
+    width: "100%",
+  },
+  slotRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "space-between",
+  },
+  statusBadge: {
+    borderRadius: 99,
+    flexShrink: 0,
+    fontSize: 10,
+    fontWeight: "800",
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  expired: { backgroundColor: "#f1f5f9", color: "#64748b" },
+  ongoing: { backgroundColor: "#dcfce7", color: "#15803d" },
+  new: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
   cardPressed: { opacity: 0.75 },
   meta: { color: "#475569", fontSize: 14, marginTop: 7 },
   description: { color: "#64748b", fontSize: 14, lineHeight: 20, marginTop: 8 },

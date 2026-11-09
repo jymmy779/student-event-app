@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorState, LoadingState } from "@/components/ScreenState";
 import { RegistrationActions } from "@/components/RegistrationActions";
 import { api } from "@/lib/api";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatEventFormat, getEventStatus } from "@/lib/format";
 import type { EventDetail } from "@/lib/types";
 
 export default function EventDetailScreen() {
@@ -66,6 +66,15 @@ export default function EventDetailScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.eyebrow}>THÔNG TIN SỰ KIỆN</Text>
           <Text style={styles.title}>{event.title}</Text>
+          {getEventStatus(event) && (
+            <Text style={[styles.statusBadge, styles[getEventStatus(event)!]]}>
+              {getEventStatus(event) === "expired"
+                ? "Đã hết hạn"
+                : getEventStatus(event) === "ongoing"
+                  ? "Đang diễn ra"
+                  : "Mới"}
+            </Text>
+          )}
 
           <View style={styles.metaGroup}>
             <View style={styles.metaItem}>
@@ -80,6 +89,48 @@ export default function EventDetailScreen() {
               <Text style={styles.metaLabel}>Địa điểm</Text>
               <Text style={styles.metaValue}>{event.location}</Text>
             </View>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>Hình thức</Text>
+              <Text style={styles.metaValue}>
+                {formatEventFormat(event.format)}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>Thời lượng</Text>
+              <Text style={styles.metaValue}>
+                {formatDuration(event.startsAt, event.endsAt)}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>Chỗ còn lại</Text>
+              <View style={styles.slotRow}>
+                <Text style={styles.metaValue}>
+                  {`Còn ${event.remainingSlots}/${event.capacity} chỗ`}
+                  {event.remainingSlots <= 0 ? " · Đã đủ chỗ" : ""}
+                </Text>
+                {getEventStatus(event) && (
+                  <Text
+                    style={[styles.statusBadge, styles[getEventStatus(event)!]]}
+                  >
+                    {getEventStatus(event) === "expired"
+                      ? "Đã hết hạn"
+                      : getEventStatus(event) === "ongoing"
+                        ? "Đang diễn ra"
+                        : "Mới"}
+                  </Text>
+                )}
+              </View>
+            </View>
+            <View>
+              {event.registrationDeadline && (
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Hạn đăng ký</Text>
+                  <Text style={styles.metaValue}>
+                    {formatDate(event.registrationDeadline)}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
           <View style={styles.registration}>
@@ -87,7 +138,17 @@ export default function EventDetailScreen() {
               key={event.id}
               eventId={event.id}
               registration={event.registration}
-              onChange={(registration) => setEvent((current) => current ? { ...current, registration } : current)}
+              expired={new Date(event.endsAt).getTime() <= Date.now()}
+              full={event.remainingSlots <= 0}
+              registrationClosed={
+                !!event.registrationDeadline &&
+                new Date(event.registrationDeadline).getTime() <= Date.now()
+              }
+              onChange={(registration) =>
+                setEvent((current) =>
+                  current ? { ...current, registration } : current,
+                )
+              }
             />
           </View>
 
@@ -99,10 +160,31 @@ export default function EventDetailScreen() {
   );
 }
 
+function formatDuration(startsAt: string, endsAt: string) {
+  const minutes = Math.max(
+    0,
+    Math.round(
+      (new Date(endsAt).getTime() - new Date(startsAt).getTime()) / 60000,
+    ),
+  );
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return (
+    [hours ? `${hours} giờ` : "", rest ? `${rest} phút` : ""]
+      .filter(Boolean)
+      .join(" ") || "Dưới 1 phút"
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { backgroundColor: "#f5f7fb", flex: 1 },
   content: { padding: 20, paddingBottom: 36 },
-  registration: { backgroundColor: "#fff", borderRadius: 16, marginTop: 20, padding: 18 },
+  registration: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    marginTop: 20,
+    padding: 18,
+  },
   eyebrow: {
     color: "#1d4ed8",
     fontSize: 12,
@@ -111,11 +193,32 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#172554",
+    flexShrink: 1,
     fontSize: 30,
     fontWeight: "800",
     lineHeight: 38,
     marginTop: 6,
   },
+  slotRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  statusBadge: {
+    alignSelf: "flex-start",
+    borderRadius: 99,
+    flexShrink: 0,
+    fontSize: 10,
+    fontWeight: "800",
+    marginTop: 8,
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  expired: { backgroundColor: "#e2e8f0", color: "#475569" },
+  ongoing: { backgroundColor: "#dcfce7", color: "#15803d" },
+  new: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
   metaGroup: {
     backgroundColor: "#fff",
     borderRadius: 16,

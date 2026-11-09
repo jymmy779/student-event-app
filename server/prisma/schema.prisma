@@ -12,8 +12,11 @@ model User {
   name          String
   email         String         @unique
   passwordHash  String?
+  role          String         @default("STUDENT")
   registrations Registration[]
   notes         Note[]
+  sessions      Session[]
+  events        Event[]
 }
 
 model Event {
@@ -21,12 +24,28 @@ model Event {
   title         String
   description   String
   location      String
+  format        String         @default("IN_PERSON")
   startsAt      DateTime
   endsAt        DateTime
+  registrationDeadline DateTime?
+  capacity      Int            @default(100)
+  remainingSlots Int           @default(100)
   qrToken       String         @unique
   createdAt     DateTime       @default(now())
+  isHidden      Boolean        @default(false)
+  createdById   String?
+  createdBy     User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
   registrations Registration[]
   notes         Note[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }
 
 model Registration {

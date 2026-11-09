@@ -55,6 +55,7 @@ Nội dung mặc định của `server/.env`:
 ```dotenv
 DATABASE_URL="file:./dev.db"
 PORT=3000
+ORGANIZER_INVITE_CODE="ma-moi-rieng-tu"
 ```
 
 Tạo SQLite database, áp migration và seed 3 sự kiện:
@@ -65,6 +66,15 @@ npm run db:seed
 ```
 
 Seed dùng `upsert`, vì vậy có thể chạy lại mà không tạo dữ liệu trùng.
+
+Tài khoản dùng để đăng nhập thử sau khi chạy seed:
+
+| Vai trò | Email | Mật khẩu |
+| --- | --- | --- |
+| Sinh viên | `demostudent@gmail.com` | `12345678` |
+| Người tổ chức | `demoorganizer@gmail.com` | `12345678` |
+
+Seed cập nhật hai tài khoản demo này nếu đã tồn tại. Tài khoản và các lượt đăng ký/event khác trong database được giữ nguyên.
 
 ### Mobile
 
@@ -175,7 +185,7 @@ Nếu điện thoại không mở được JSON:
 
 ## 4. Dữ liệu hiện tại
 
-Schema đã có `User`, `Event`, `Registration` và `Note`. Seed tạo 3 sự kiện và tài khoản `demo-student`. API cá nhân luôn dùng demo user cố định phía server, bỏ qua userId do client gửi. Mọi thiết bị dùng chung lịch demo; chưa có đăng nhập tài khoản riêng.
+Schema có `User`, `Event`, `Registration` và `Note`. Seed vẫn tạo dữ liệu mẫu, còn app dùng tài khoản riêng đăng ký bằng email/mật khẩu. Mỗi lượt đăng ký và lịch cá nhân gắn với user của bearer session. Organizer cần mã mời cấu hình bằng `ORGANIZER_INVITE_CODE` trong `server/.env`.
 
 Muốn khôi phục hoặc bổ sung dữ liệu mẫu, chạy lại:
 
@@ -200,16 +210,29 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 
 | Method | Endpoint | Chức năng |
 | --- | --- | --- |
-| GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu |
+| GET | `/events` | Lấy sự kiện đang hiển thị và đã hết hạn; đã hết hạn được đánh dấu, sự kiện organizer ẩn sẽ không hiện |
 | GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
-| GET | `/events/:id` | Chi tiết công khai và registration của demo user |
-| POST | `/events/:id/register` | Đăng ký idempotent, trả registration hiện có khi lặp |
+| GET | `/events/:id` | Chi tiết công khai và trạng thái đăng ký của tài khoản đang đăng nhập |
+| POST | `/events/:id/register` | Đăng ký idempotent; từ chối event đã hết hạn hoặc organizer đã ẩn |
 | DELETE | `/events/:id/register` | Hủy nếu chưa check-in; đã check-in trả 409 |
-| GET | `/me/registrations` | Lịch demo user, kèm event công khai, theo giờ bắt đầu |
+| GET | `/me/registrations` | Lịch của tài khoản đang đăng nhập, kèm event công khai, theo giờ bắt đầu |
+| POST | `/auth/register` | Tạo tài khoản sinh viên và session |
+| POST | `/auth/register-organizer` | Tạo tài khoản organizer; cần mã mời |
+| POST | `/auth/login` | Đăng nhập và nhận bearer session |
+| GET | `/auth/me` | Thông tin tài khoản đang đăng nhập |
+| PATCH | `/me/profile` | Cập nhật tên và email, role chỉ đọc |
+| PATCH | `/me/password` | Đổi mật khẩu, kết thúc các phiên khác |
+| GET | `/me/stats` | Thống kê đăng ký, check-in, sự kiện sắp tới và số event đã tạo |
+| POST | `/organizer/events` | Organizer tạo sự kiện và QR token riêng |
+| GET | `/organizer/events` | Danh sách sự kiện do organizer tạo |
+| GET | `/organizer/events/:id/stats` | Số đăng ký, check-in, chưa check-in và tỷ lệ tham dự |
+| PATCH | `/organizer/events/:id/visibility` | Organizer ẩn/hiện sự kiện của mình |
 
-Chi tiết luồng, API response, schema, demo identity, điểm nối QR/notification và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). POST không cần body; DELETE trả `{ data: { registered: false }, error: null }`. Thiếu demo user trả 503 `DEMO_USER_NOT_CONFIGURED`; chạy lại seed để cấu hình.
+Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API người dùng yêu cầu bearer token sau khi đăng nhập.
 
-API danh sách và chi tiết không trả `qrToken`; token chỉ được sử dụng trong luồng check-in phía server.
+API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer lúc tạo event để phần QR/check-in tích hợp sau này.
+
+Sau khi cập nhật code, áp migration bằng `npm run db:deploy` trong thư mục `server`. Tất cả endpoint đăng ký, chi tiết cá nhân và organizer yêu cầu `Authorization: Bearer <token>` do đăng nhập/đăng ký trả về. App yêu cầu đăng nhập trước khi vào bất kỳ màn hình nào; token được lưu bằng SecureStore trên iOS/Android và `localStorage` trong web/Extension Mobile View, rồi kiểm tra lại với server khi mở app. Cấu hình `ORGANIZER_INVITE_CODE` trong `server/.env` trước khi tạo tài khoản organizer.
 
 API danh sách trả một mảng trong `data`:
 
@@ -217,7 +240,7 @@ API danh sách trả một mảng trong `data`:
 {
   "data": [
     {
-      "id": "event-future-tech",
+      "id": "cmhr2n4e30000000000000001",
       "title": "Seminar Công nghệ và AI",
       "description": "...",
       "location": "Phòng B2.02",
@@ -234,7 +257,7 @@ API chi tiết trả một sự kiện và trạng thái đăng ký trong `data`
 ```json
 {
   "data": {
-    "id": "event-future-tech",
+    "id": "cmhr2n4e30000000000000001",
     "title": "Seminar Công nghệ và AI",
     "description": "...",
     "location": "Phòng B2.02",

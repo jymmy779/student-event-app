@@ -16,6 +16,10 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="events/[id]" options={{ title: "Chi tiết sự kiện" }} />
+        <Stack.Screen
+          name="notes/[eventId]"
+          options={{ title: "Ghi chú & Tóm tắt AI" }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

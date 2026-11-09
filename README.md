@@ -55,6 +55,7 @@ Nội dung mặc định của `server/.env`:
 ```dotenv
 DATABASE_URL="file:./dev.db"
 PORT=3000
+GEMINI_API_KEY="khoa_gemini_api_cua_ban"
 ```
 
 Tạo SQLite database, áp migration và seed 3 sự kiện:
@@ -203,6 +204,9 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 | GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu |
 | GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
 | GET | `/events/:id` | Lấy thông tin chi tiết công khai của một sự kiện |
+| GET | `/events/:id/note` | Lấy ghi chú và bản tóm tắt AI của sự kiện |
+| PUT | `/events/:id/note` | Lưu hoặc cập nhật ghi chú (1 – 5.000 ký tự) |
+| POST | `/events/:id/summarize` | Gọi Gemini AI tóm tắt nội dung ghi chú và lưu vào DB |
 
 Các endpoint đăng ký, hủy và lịch cá nhân chưa có trong baseline; Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
 

@@ -5,12 +5,14 @@ import express, {
   type Response,
 } from "express";
 import { eventsRouter } from "./routes/events.js";
+import { notesRouter } from "./routes/notes.js";
 
 export const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.use(eventsRouter);
+app.use(notesRouter);
 
 app.use((_request, response) =>
   response

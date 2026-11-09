@@ -10,3 +10,12 @@ export type EventItem = {
   endsAt: string;
   createdAt: string;
 };
+
+export type NoteItem = {
+  id: string;
+  userId: string;
+  eventId: string;
+  content: string;
+  summary: string | null;
+  updatedAt: string;
+};

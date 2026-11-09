@@ -1,6 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
+const demoUser = {
+  id: "user-demo-1",
+  name: "Sinh viên Demo",
+  email: "demo@student.edu.vn",
+} as const;
+
 const events = [
   { id: "event-past-workshop", title: "Workshop Kỹ năng thuyết trình", description: "Thực hành xây dựng nội dung và trình bày tự tin trước đám đông.", location: "Phòng A1.01", startsAt: new Date("2026-09-15T01:00:00.000Z"), endsAt: new Date("2026-09-15T04:00:00.000Z"), qrToken: "mvp-past-workshop-token" },
   { id: "event-current-career", title: "Ngày hội việc làm sinh viên", description: "Gặp gỡ doanh nghiệp, tìm hiểu vị trí thực tập và cơ hội nghề nghiệp.", location: "Hội trường A", startsAt: new Date("2026-09-25T00:00:00.000Z"), endsAt: new Date("2026-09-25T10:00:00.000Z"), qrToken: "mvp-current-career-token" },
@@ -8,10 +15,16 @@ const events = [
 ] as const;
 
 async function main() {
+  await prisma.user.upsert({
+    where: { id: demoUser.id },
+    update: demoUser,
+    create: demoUser,
+  });
+
   for (const event of events) {
     await prisma.event.upsert({ where: { id: event.id }, update: event, create: event });
   }
-  console.log(`Seeded ${events.length} events (idempotent upsert).`);
+  console.log(`Seeded demo user and ${events.length} events (idempotent upsert).`);
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; }).finally(() => prisma.$disconnect());

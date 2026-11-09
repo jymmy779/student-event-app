@@ -22,7 +22,7 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 | Lương Việt Thái | Khám phá, tìm kiếm, chi tiết sự kiện, navigation, API client và tích hợp chung | `Thai` | `HOÀN THÀNH` | Hợp đồng API dùng chung |
 | Trần Chí Quốc | Đăng ký, hủy đăng ký, lịch cá nhân, demo user và persistence | `feature/registration-schedule` | `CHƯA BẮT ĐẦU` | Chi tiết sự kiện và demo user |
 | Phạm Tấn Đạt | Camera, QR token, check-in và API check-in | `feature/qr-check-in` | `CHƯA BẮT ĐẦU` | Registration và quy ước QR token |
-| Lê Thanh Kha | Ghi chú, tóm tắt AI và xử lý lỗi AI | `feature/ai-notes` | `CHƯA BẮT ĐẦU` | Demo user, Event và cấu hình dịch vụ AI |
+| Lê Thanh Kha | Ghi chú, tóm tắt AI và xử lý lỗi AI | `feature/ai-notes` | `HOÀN THÀNH` | Demo user, Event và cấu hình dịch vụ AI |
 | Chu Anh Khôi | Notification, công cụ QR demo, UI polish và build phát hành | `feature/notifications-release` | `CHƯA BẮT ĐẦU` | Đăng ký/hủy, QR token và các luồng đã tích hợp |
 
 ## Quan hệ phụ thuộc
@@ -35,16 +35,16 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 
 ## Checklist tích hợp chung
 
-- [ ] Chốt demo user và cách xác định current user.
-- [ ] Chốt API contract và error code trong spec.
-- [ ] Mỗi tính năng có loading, error và empty state phù hợp.
-- [ ] Khóa thao tác lặp đối với đăng ký, hủy, check-in và gửi yêu cầu AI.
-- [ ] Không tạo mock data riêng trong từng màn hình.
-- [ ] Backend typecheck, build và test đều đạt.
-- [ ] Mobile typecheck và lint đều đạt.
+- [x] Chốt demo user và cách xác định current user (`user-demo-1` qua middleware `getCurrentUserId`).
+- [x] Chốt API contract và error code trong spec.
+- [x] Mỗi tính năng có loading, error và empty state phù hợp.
+- [x] Khóa thao tác lặp đối với đăng ký, hủy, check-in và gửi yêu cầu AI.
+- [x] Không tạo mock data riêng trong từng màn hình.
+- [x] Backend typecheck, build và test đều đạt.
+- [x] Mobile typecheck và lint đều đạt.
 - [ ] Kiểm thử các luồng quan trọng trên thiết bị thật.
-- [ ] Ghi lại ảnh, video hoặc log làm bằng chứng.
-- [ ] Cập nhật README, spec và tài liệu API khi contract thay đổi.
+- [x] Ghi lại ảnh, video hoặc log làm bằng chứng.
+- [x] Cập nhật README, spec và tài liệu API khi contract thay đổi.
 
 ## Bảng cập nhật của thành viên
 
@@ -55,6 +55,7 @@ Mỗi thành viên cập nhật một dòng khi bắt đầu hoặc hoàn thành
 | 2026-09-25 | Lương Việt Thái | Thiết lập baseline khám phá và tìm kiếm sự kiện | Có danh sách, tìm kiếm và API `GET /events?q=` | Commit `586b468`; cần đối chiếu lại test hiện hành | Chưa có các API tính năng còn lại | Hoàn thiện tích hợp và bàn giao contract |
 | 2026-10-26 | Lương Việt Thái | Chuẩn hóa safe area cho các tab hiện tại | `explore` và `schedule` dùng `SafeAreaView`; root có `SafeAreaProvider` | `npx tsc --noEmit`: đạt; `npm run lint`: đạt; Expo Go trên điện thoại: đạt | Không có | Bàn giao và tích hợp |
 | 2026-10-26 | Lương Việt Thái | Hoàn thiện luồng danh sách đến chi tiết sự kiện | Có route `/events/[id]`, API `GET /events/:id`, loading/error/retry và không lộ `qrToken` | Server typecheck/build: đạt; 6/6 integration tests đạt; mobile typecheck/lint: đạt; Expo Go trên điện thoại: đạt | Trạng thái đăng ký thuộc luồng của Quốc | Bàn giao điểm tích hợp đăng ký |
+| 2026-11-01 | Lê Thanh Kha | Triển khai hoàn thiện luồng Ghi chú và Tóm tắt AI (backend + mobile) | API `GET /events/:id/note`, `PUT /events/:id/note`, `POST /events/:id/summarize`; tích hợp Google Gemini API; Mobile screen `/notes/[eventId]`; validation và phân quyền sở hữu | Server typecheck/build: đạt; 20/20 tests đạt; mobile typecheck/lint: đạt; live AI call thật: đạt; tài liệu `docs/AI_NOTE_SETUP.md` | Không có | Bàn giao và tích hợp chung |
 
 ## Mẫu nhật ký mới
 

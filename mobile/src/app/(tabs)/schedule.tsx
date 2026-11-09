@@ -50,8 +50,8 @@ export default function ScheduleScreen() {
   }
 
   return (
-    <View style={styles.screen}>
-      <SafeAreaView edges={["top", "left", "right"]} style={styles.header}>
+    <SafeAreaView edges={["left", "right"]} style={styles.screen}>
+      <SafeAreaView edges={["top"]} style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.heading}>Lịch của tôi</Text>
           <Text style={styles.subtitle}>Tài khoản demo · Sự kiện bạn đã đăng ký</Text>
@@ -98,7 +98,7 @@ export default function ScheduleScreen() {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

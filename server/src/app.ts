@@ -5,6 +5,10 @@ import express, {
   type Response,
 } from "express";
 import { eventsRouter } from "./routes/events.js";
+import { registrationsRouter } from "./routes/registrations.js";
+import { authRouter } from "./routes/auth.js";
+import { organizerRouter } from "./routes/organizer.js";
+import { accountRouter } from "./routes/account.js";
 import { notesRouter } from "./routes/notes.js";
 
 export const app = express();
@@ -12,6 +16,10 @@ app.use(cors());
 app.use(express.json());
 
 app.use(eventsRouter);
+app.use(authRouter);
+app.use(organizerRouter);
+app.use(accountRouter);
+app.use(registrationsRouter);
 app.use(notesRouter);
 
 app.use((_request, response) =>

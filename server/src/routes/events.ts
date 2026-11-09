@@ -1,37 +1,34 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
+import { requireUser } from "../auth.js";
+import { publicEventSelect, publicRegistrationSelect } from "../public-select.js";
 
 export const eventsRouter = Router();
-
-const publicEventSelect = {
-  id: true,
-  title: true,
-  description: true,
-  location: true,
-  startsAt: true,
-  endsAt: true,
-  createdAt: true,
-} as const;
 
 eventsRouter.get("/events", async (request, response, next) => {
   try {
     const query =
       typeof request.query.q === "string" ? request.query.q.trim() : "";
-    const events = await prisma.event.findMany({
-      where: query ? { title: { contains: query } } : undefined,
+    const found = await prisma.event.findMany({
+      where: { isHidden: false, ...(query ? { title: { contains: query } } : {}) },
       orderBy: { startsAt: "asc" },
       select: publicEventSelect,
     });
+    const now = Date.now();
+    const events = [
+      ...found.filter((event) => event.endsAt.getTime() > now),
+      ...found.filter((event) => event.endsAt.getTime() <= now).sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime()),
+    ];
     response.json({ data: events, error: null });
   } catch (error) {
     next(error);
   }
 });
 
-eventsRouter.get("/events/:id", async (request, response, next) => {
+eventsRouter.get("/events/:id", requireUser, async (request, response, next) => {
   try {
-    const event = await prisma.event.findUnique({
-      where: { id: request.params.id },
+    const event = await prisma.event.findFirst({
+      where: { id: request.params.id, isHidden: false },
       select: publicEventSelect,
     });
 
@@ -46,7 +43,11 @@ eventsRouter.get("/events/:id", async (request, response, next) => {
       return;
     }
 
-    response.json({ data: event, error: null });
+    const registration = await prisma.registration.findUnique({
+      where: { userId_eventId: { userId: request.user!.id, eventId: event.id } },
+      select: publicRegistrationSelect,
+    });
+    response.json({ data: { ...event, registration }, error: null });
   } catch (error) {
     next(error);
   }

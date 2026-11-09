@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getCurrentUserId } from "../auth.js";
+import { requireUser } from "../auth.js";
 import { prisma } from "../db.js";
 import {
   AiServiceError,
@@ -19,10 +19,10 @@ const noteSelect = {
   updatedAt: true,
 } as const;
 
-notesRouter.get("/events/:id/note", async (request, response, next) => {
+notesRouter.get("/events/:id/note", requireUser, async (request, response, next) => {
   try {
     const eventId = request.params.id;
-    const userId = getCurrentUserId(request);
+    const userId = request.user!.id;
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },
@@ -48,10 +48,10 @@ notesRouter.get("/events/:id/note", async (request, response, next) => {
   }
 });
 
-notesRouter.put("/events/:id/note", async (request, response, next) => {
+notesRouter.put("/events/:id/note", requireUser, async (request, response, next) => {
   try {
     const eventId = request.params.id;
-    const userId = getCurrentUserId(request);
+    const userId = request.user!.id;
     const content = request.body?.content;
 
     if (typeof content !== "string" || !content.trim()) {
@@ -89,17 +89,6 @@ notesRouter.put("/events/:id/note", async (request, response, next) => {
       return;
     }
 
-    // Đảm bảo user tồn tại trước khi liên kết
-    await prisma.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: {
-        id: userId,
-        name: "Sinh viên Demo",
-        email: `${userId}@student.edu.vn`,
-      },
-    });
-
     const note = await prisma.note.upsert({
       where: { userId_eventId: { userId, eventId } },
       update: { content: content.trim() },
@@ -113,10 +102,10 @@ notesRouter.put("/events/:id/note", async (request, response, next) => {
   }
 });
 
-notesRouter.post("/events/:id/summarize", async (request, response, next) => {
+notesRouter.post("/events/:id/summarize", requireUser, async (request, response, next) => {
   try {
     const eventId = request.params.id;
-    const userId = getCurrentUserId(request);
+    const userId = request.user!.id;
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },

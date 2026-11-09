@@ -1,44 +1,39 @@
 # Báo cáo kiểm thử Student Event App
 
-## Kết quả ngày 2026-11-01 (Mốc 3: Ghi chú và tóm tắt AI - Lê Thanh Kha)
+## Ghi chú và tóm tắt AI — báo cáo từ nhánh Kha
 
-Phạm vi kiểm thử gồm: Quản lý ghi chú (lưu, đọc, validation), tích hợp Google Gemini AI tóm tắt thông minh, xử lý lỗi và timeout, kiểm tra quyền sở hữu đa người dùng, giao diện mobile màn hình ghi chú.
+PR của Kha ghi nhận 14 test Note/AI trong tổng 20 integration test, cùng các trường hợp lưu/đọc ghi chú, giới hạn nội dung, cô lập dữ liệu theo user, lỗi Gemini và timeout. Báo cáo gốc cũng ghi nhận typecheck/build server, typecheck/lint/export mobile và một lần gọi Gemini thật đạt.
 
-| Khu vực | Lệnh hoặc môi trường | Kết quả |
+Các kết quả trên được ghi nhận trước khi đổi cơ chế định danh từ `x-user-id`/demo user sang bearer session. Test đã được cập nhật để dùng session; cần chạy lại bộ kiểm thử sau khi tích hợp trước khi coi các kết quả này là đã xác nhận trên nhánh hợp nhất.
+
+## Kết quả ngày 2026-11-05 — Đăng ký và lịch cá nhân
+
+Phạm vi Trần Chí Quốc: API đăng ký/hủy/lịch, demo user, component dùng chung trên chi tiết và tab Lịch, persistence. Không triển khai QR, notification hoặc AI trong lần bàn giao này. Chưa tạo commit.
+
+Môi trường: Windows, Node.js v22.16.0; Expo ~57.0.25, React Native 0.86.3, Prisma 6, Vitest 4.1.11. Backend dùng SQLite test tại thư mục tạm, áp migration 20260925000000_init thật. Integration tests không sửa DB demo.
+
+| Khu vực | Lệnh đã chạy | Kết quả |
 | --- | --- | --- |
+| Mobile typecheck | `npx tsc --noEmit` | PASS |
+| Mobile lint | `npm run lint` | PASS, không warning sau khi sửa callback làm mới lịch |
 | Server typecheck | `npm run typecheck` | PASS |
 | Server build | `npm run build` | PASS |
-| Server integration test | `npm test` | PASS - 2 files, 20 tests (14 tests Note/AI mới) |
-| Server live AI verification | Gọi API thật với Google Gemini | PASS - Trả về tóm tắt tiếng Việt chính xác |
-| Mobile typecheck | `npx tsc --noEmit` | PASS |
-| Mobile lint | `npm run lint` | PASS - 0 errors, 0 warnings |
-| Mobile export | `npx expo export --platform web` | PASS - 9 routes exported |
+| Server integration | `npm test` | PASS: 2 file, 20 test, 0 fail, 0 skip |
+| Seed idempotent | Seed hai lần trong integration test | PASS: giữ registration, các tài khoản mẫu và 3 event mẫu |
+| Persistence | Ngắt Prisma client, đọc từ client mới, API kết nối lại | PASS trên SQLite test |
+| Máy thật / Expo Go | Chưa thực hiện | NOT RUN — cần thiết bị Android/iOS |
+| Restart tiến trình app/server với UI | Chưa thực hiện | NOT RUN — test tự động mới kiểm tra persistence qua kết nối DB độc lập |
+| APK / EAS Build | Chưa thực hiện | NOT RUN — ngoài phạm vi đăng ký/lịch |
 
-### Trường hợp Note & AI đã kiểm tra tự động
+14 integration test mới trong `server/tests/registrations.integration.test.ts` kiểm tra: đăng ký và trạng thái trên detail/lịch; đăng ký lặp giữ ID và checkedInAt; 5 request đồng thời không trùng; DB unique constraint; hủy và đăng ký lại; hủy lặp; chặn hủy sau check-in và giữ bản ghi; sự kiện không tồn tại; lịch rỗng; không giả danh hoặc đọc/xóa lịch người khác; sắp xếp theo thời gian; persistence; thiếu demo user; seed idempotent. 6 test sự kiện cũ đều tiếp tục đạt.
 
-- `GET /events/:id/note`:
-  - Trả về `404 EVENT_NOT_FOUND` nếu mã sự kiện không tồn tại.
-  - Trả về `data: null` nếu người dùng chưa tạo ghi chú cho sự kiện.
-  - Trả về đầy đủ bản ghi ghi chú nếu đã tồn tại.
-- `PUT /events/:id/note`:
-  - Chặn ghi chú rỗng hoặc toàn khoảng trắng (`400 NOTE_EMPTY`).
-  - Chặn ghi chú vượt quá 5.000 ký tự (`400 NOTE_TOO_LONG`).
-  - Trả về `404 EVENT_NOT_FOUND` nếu mã sự kiện không hợp lệ.
-  - Lưu ghi chú hợp lệ và tạo dữ liệu thật trong SQLite.
-  - Cập nhật đúng khi gọi lại (idempotent upsert).
-- Quyền sở hữu dữ liệu (Ownership Isolation):
-  - Ghi chú của User 1 và User 2 trên cùng một sự kiện hoàn toàn tách biệt.
-  - User 2 không đọc hoặc ghi đè được ghi chú của User 1.
-- `POST /events/:id/summarize`:
-  - Chặn tóm tắt khi chưa có ghi chú (`400 NOTE_EMPTY`).
-  - Trả về `503 AI_SERVICE_UNAVAILABLE` rõ ràng khi máy chủ chưa cấu hình `GEMINI_API_KEY`.
-  - Gọi AI thành công: Cập nhật trường `summary` trong DB và trả về bản ghi cập nhật.
-  - Xử lý timeout (`504 AI_TIMEOUT`): Bảo toàn nguyên vẹn nội dung ghi chú trong DB.
-  - Xử lý lỗi dịch vụ AI (`503 AI_SERVICE_ERROR`): Bảo toàn nội dung ghi chú trong DB.
+Đã giữ nguyên schema Registration và migration vì baseline có đủ khóa ngoại, checkedInAt và unique(userId,eventId). API hủy dùng điều kiện checkedInAt=null ngay trong câu DELETE. Thử chặn hủy bằng cách đặt checkedInAt trực tiếp trong DB test; chưa coi đó là bằng chứng luồng QR hoạt động.
 
----
+Checklist kiểm thử máy thật và hợp đồng tích hợp: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). Cần xác nhận đăng ký/hủy đồng bộ giữa hai màn hình, mở lại app/restart server vẫn giữ lịch, UI check-in, mạng lỗi/retry và thao tác xác nhận hủy. Tất cả thiết bị hiện dùng chung demo user; chưa có đăng nhập riêng.
 
-## Kết quả ngày 2026-10-26 (Mốc baseline: Khám phá và chi tiết sự kiện - Lương Việt Thái)
+## Lịch sử kiểm thử
+
+## Kết quả ngày 2026-10-26
 
 Phạm vi kiểm thử gồm danh sách, tìm kiếm, chi tiết sự kiện, điều hướng và safe area.
 
@@ -51,10 +46,17 @@ Phạm vi kiểm thử gồm danh sách, tìm kiếm, chi tiết sự kiện, đ
 | Mobile lint | `npm run lint` | PASS |
 | Mobile trên điện thoại | Expo Go | PASS - người dùng xác nhận |
 
----
+## Trường hợp backend đã kiểm tra
 
-## Phạm vi còn lại của dự án
+- `GET /events` trả dữ liệu thật từ SQLite theo API envelope.
+- Danh sách rỗng trả mảng rỗng.
+- Tìm kiếm sự kiện theo tiêu đề.
+- Danh sách không làm lộ `qrToken`.
+- `GET /events/:id` trả chi tiết sự kiện tồn tại và không làm lộ `qrToken`.
+- ID không tồn tại trả `404` với mã `EVENT_NOT_FOUND`.
 
-- Trạng thái đăng ký, hủy đăng ký và lịch cá nhân (Trần Chí Quốc - `feature/registration-schedule`).
-- Camera, quét mã QR và check-in (Phạm Tấn Đạt - `feature/qr-check-in`).
-- Thông báo local nhắc giờ, công cụ tạo QR demo và build release APK (Chu Anh Khôi - `feature/notifications-release`).
+## Phạm vi chưa kiểm tra
+
+- Trạng thái, đăng ký, hủy đăng ký và lịch cá nhân chưa được triển khai.
+- Camera, QR check-in, notification và AI chưa nằm trong mốc hiện tại.
+- Chưa có kết quả build APK; lần kiểm tra thiết bị hiện dùng Expo Go.

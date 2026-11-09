@@ -1,8 +1,10 @@
 # Hướng dẫn cấu hình và kiểm thử tính năng Ghi chú & Tóm tắt AI
 
 **Người phụ trách:** Lê Thanh Kha  
-**Nhánh:** `feature/ai-notes`  
+**Nhánh:** `kha`
 **Tính năng:** Màn nhập/xem ghi chú, API lưu/đọc note, tích hợp AI Google Gemini tóm tắt nội dung, validation và xử lý lỗi.
+
+Sau khi tích hợp đăng nhập, cả ba endpoint ghi chú yêu cầu `Authorization: Bearer <token>`. `userId` được lấy từ tài khoản trong session; không gửi `x-user-id`. Seed tạo tài khoản sinh viên thử nghiệm `demostudent@gmail.com` với mật khẩu `12345678`.
 
 ---
 
@@ -59,7 +61,7 @@ Mọi API đều trả về cấu trúc phong bì nhất quán `{ data, error }`
 Kiểm tra trực tiếp thông qua test script gọi vào ứng dụng Express và kết nối trực tiếp đến Google Gemini API bằng khóa thật:
 
 ```text
-Testing with event: event-past-workshop
+Testing with an event ID returned by GET /events
 PUT Note status: 200
 Calling real AI summarize...
 Summarize status: 200
@@ -79,9 +81,17 @@ cd server
 npm run dev
 ```
 
+Đăng nhập và lấy ID của một sự kiện từ API:
+
+```powershell
+$login = Invoke-RestMethod -Method Post -Uri "http://localhost:3000/auth/login" -ContentType "application/json" -Body (@{ email = "demostudent@gmail.com"; password = "12345678" } | ConvertTo-Json)
+$headers = @{ Authorization = "Bearer $($login.data.token)" }
+$eventId = (Invoke-RestMethod -Uri "http://localhost:3000/events").data[0].id
+```
+
 ### 1. Lưu ghi chú mới:
 ```powershell
-Invoke-RestMethod -Method Put -Uri "http://localhost:3000/events/event-past-workshop/note" -Headers @{"Content-Type"="application/json"} -Body '{"content":"Tham gia buổi chia sẻ về lập trình ứng dụng di động React Native và Expo SDK 57."}'
+Invoke-RestMethod -Method Put -Uri "http://localhost:3000/events/$eventId/note" -Headers ($headers + @{"Content-Type"="application/json"}) -Body '{"content":"Tham gia buổi chia sẻ về lập trình ứng dụng di động React Native và Expo."}'
 ```
 
 Phản hồi:
@@ -89,8 +99,8 @@ Phản hồi:
 {
   "data": {
     "id": "cm...",
-    "userId": "user-demo-1",
-    "eventId": "event-past-workshop",
+    "userId": "<ID tài khoản đang đăng nhập>",
+    "eventId": "<ID lấy từ GET /events>",
     "content": "Tham gia buổi chia sẻ về lập trình ứng dụng di động React Native và Expo SDK 57.",
     "summary": null,
     "updatedAt": "2026-11-01T15:20:00.000Z"
@@ -101,7 +111,7 @@ Phản hồi:
 
 ### 2. Yêu cầu AI tóm tắt:
 ```powershell
-Invoke-RestMethod -Method Post -Uri "http://localhost:3000/events/event-past-workshop/summarize"
+Invoke-RestMethod -Method Post -Uri "http://localhost:3000/events/$eventId/summarize" -Headers $headers
 ```
 
 Phản hồi:
@@ -109,8 +119,8 @@ Phản hồi:
 {
   "data": {
     "id": "cm...",
-    "userId": "user-demo-1",
-    "eventId": "event-past-workshop",
+    "userId": "<ID tài khoản đang đăng nhập>",
+    "eventId": "<ID lấy từ GET /events>",
     "content": "Tham gia buổi chia sẻ về lập trình ứng dụng di động React Native và Expo SDK 57.",
     "summary": "* Tham gia workshop học lập trình ứng dụng di động với React Native\n* Thực hành sử dụng Expo SDK 57 để xây dựng app",
     "updatedAt": "2026-11-01T15:20:05.000Z"
@@ -121,5 +131,5 @@ Phản hồi:
 
 ### 3. Đọc lại ghi chú và tóm tắt:
 ```powershell
-Invoke-RestMethod -Method Get -Uri "http://localhost:3000/events/event-past-workshop/note"
+Invoke-RestMethod -Method Get -Uri "http://localhost:3000/events/$eventId/note" -Headers $headers
 ```

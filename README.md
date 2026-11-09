@@ -6,13 +6,13 @@ Theo dõi phân công hiện hành, phụ thuộc và nhật ký triển khai t�
 
 - Mobile: Expo, React Native, TypeScript và Expo Router.
 - Backend: Node.js, Express, TypeScript, Prisma và SQLite.
-- Baseline hiện tại: danh sách và tìm kiếm sự kiện qua API thật. Chi tiết, đăng ký và lịch cá nhân được giao cho thành viên phụ trách triển khai lại.
+- Hiện có: khám phá và chi tiết sự kiện, đăng nhập/session, quản lý sự kiện cho organizer, đăng ký/lịch cá nhân và ghi chú/tóm tắt AI qua API backend.
 
 ## Yêu cầu môi trường
 
 - Node.js 20 hoặc 22 LTS.
 - npm.
-- Expo Go tương thích Expo SDK 57 nếu chạy trên điện thoại thật.
+- Expo Go tương thích Expo SDK 58 nếu chạy trên điện thoại thật.
 - Điện thoại và máy tính cùng mạng Wi-Fi khi thử qua LAN.
 
 Kiểm tra môi trường:
@@ -55,7 +55,9 @@ Nội dung mặc định của `server/.env`:
 ```dotenv
 DATABASE_URL="file:./dev.db"
 PORT=3000
-GEMINI_API_KEY="khoa_gemini_api_cua_ban"
+ORGANIZER_INVITE_CODE="ma-moi-rieng-tu"
+GEMINI_API_KEY=""
+# GEMINI_MODEL="gemini-3.5-flash-lite"
 ```
 
 Tạo SQLite database, áp migration và seed 3 sự kiện:
@@ -66,6 +68,15 @@ npm run db:seed
 ```
 
 Seed dùng `upsert`, vì vậy có thể chạy lại mà không tạo dữ liệu trùng.
+
+Tài khoản dùng để đăng nhập thử sau khi chạy seed:
+
+| Vai trò | Email | Mật khẩu |
+| --- | --- | --- |
+| Sinh viên | `demostudent@gmail.com` | `12345678` |
+| Người tổ chức | `demoorganizer@gmail.com` | `12345678` |
+
+Seed cập nhật hai tài khoản demo này nếu đã tồn tại. Tài khoản và các lượt đăng ký/event khác trong database được giữ nguyên.
 
 ### Mobile
 
@@ -176,7 +187,7 @@ Nếu điện thoại không mở được JSON:
 
 ## 4. Dữ liệu hiện tại
 
-Schema nền đã có `User`, `Event`, `Registration` và `Note`. Baseline hiện chỉ seed 3 sự kiện; người phụ trách luồng đăng ký sẽ bổ sung demo user và logic persistence trong nhánh của mình.
+Schema có `User`, `Event`, `Registration` và `Note`. Seed vẫn tạo dữ liệu mẫu, còn app dùng tài khoản riêng đăng ký bằng email/mật khẩu. Mỗi lượt đăng ký và lịch cá nhân gắn với user của bearer session. Organizer cần mã mời cấu hình bằng `ORGANIZER_INVITE_CODE` trong `server/.env`.
 
 Muốn khôi phục hoặc bổ sung dữ liệu mẫu, chạy lại:
 
@@ -193,7 +204,7 @@ Từ thư mục `server/`, chạy:
 npx prisma studio
 ```
 
-Trình duyệt sẽ mở `http://localhost:5555`. Có thể xem trực tiếp các bảng `Event`, `User`, `Registration` và `Note`. Ở baseline hiện tại, `Event` có 3 sự kiện mẫu; các bảng còn lại có thể trống.
+Trình duyệt sẽ mở `http://localhost:5555`. Có thể xem trực tiếp các bảng `Event`, `User`, `Registration` và `Note`. Sau seed, `Event` có 3 sự kiện mẫu và `User` có tài khoản demo. `Registration` được tạo khi đăng ký qua app.
 
 Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác nhau. Dừng Studio bằng `Ctrl+C` khi không dùng nữa.
 
@@ -201,16 +212,32 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 
 | Method | Endpoint | Chức năng |
 | --- | --- | --- |
-| GET | `/events` | Lấy toàn bộ sự kiện, sắp xếp theo thời gian bắt đầu |
+| GET | `/events` | Lấy sự kiện đang hiển thị và đã hết hạn; đã hết hạn được đánh dấu, sự kiện organizer ẩn sẽ không hiện |
 | GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
-| GET | `/events/:id` | Lấy thông tin chi tiết công khai của một sự kiện |
-| GET | `/events/:id/note` | Lấy ghi chú và bản tóm tắt AI của sự kiện |
-| PUT | `/events/:id/note` | Lưu hoặc cập nhật ghi chú (1 – 5.000 ký tự) |
-| POST | `/events/:id/summarize` | Gọi Gemini AI tóm tắt nội dung ghi chú và lưu vào DB |
+| GET | `/events/:id` | Chi tiết công khai và trạng thái đăng ký của tài khoản đang đăng nhập |
+| POST | `/events/:id/register` | Đăng ký idempotent; từ chối event đã hết hạn hoặc organizer đã ẩn |
+| DELETE | `/events/:id/register` | Hủy nếu chưa check-in; đã check-in trả 409 |
+| GET | `/me/registrations` | Lịch của tài khoản đang đăng nhập, kèm event công khai, theo giờ bắt đầu |
+| POST | `/auth/register` | Tạo tài khoản sinh viên và session |
+| POST | `/auth/register-organizer` | Tạo tài khoản organizer; cần mã mời |
+| POST | `/auth/login` | Đăng nhập và nhận bearer session |
+| GET | `/auth/me` | Thông tin tài khoản đang đăng nhập |
+| PATCH | `/me/profile` | Cập nhật tên và email, role chỉ đọc |
+| PATCH | `/me/password` | Đổi mật khẩu, kết thúc các phiên khác |
+| GET | `/me/stats` | Thống kê đăng ký, check-in, sự kiện sắp tới và số event đã tạo |
+| GET | `/events/:id/note` | Lấy ghi chú và tóm tắt AI của tài khoản đang đăng nhập |
+| PUT | `/events/:id/note` | Lưu hoặc cập nhật ghi chú (tối đa 5.000 ký tự) |
+| POST | `/events/:id/summarize` | Tóm tắt ghi chú bằng Gemini AI |
+| POST | `/organizer/events` | Organizer tạo sự kiện và QR token riêng |
+| GET | `/organizer/events` | Danh sách sự kiện do organizer tạo |
+| GET | `/organizer/events/:id/stats` | Số đăng ký, check-in, chưa check-in và tỷ lệ tham dự |
+| PATCH | `/organizer/events/:id/visibility` | Organizer ẩn/hiện sự kiện của mình |
 
-Các endpoint đăng ký, hủy và lịch cá nhân chưa có trong baseline; Quốc triển khai trong `feature/quoc-registration-schedule` theo `EVENT_APP_MVP_SPEC.md`.
+Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). Hướng dẫn cấu hình Gemini và API ghi chú: [docs/AI_NOTE_SETUP.md](./docs/AI_NOTE_SETUP.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API cá nhân và ghi chú yêu cầu bearer token sau khi đăng nhập.
 
-API danh sách và chi tiết không trả `qrToken`; token chỉ được sử dụng trong luồng check-in phía server.
+API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer lúc tạo event để phần QR/check-in tích hợp sau này.
+
+Sau khi cập nhật code, áp migration bằng `npm run db:deploy` trong thư mục `server`. Tất cả endpoint đăng ký, chi tiết cá nhân và organizer yêu cầu `Authorization: Bearer <token>` do đăng nhập/đăng ký trả về. App yêu cầu đăng nhập trước khi vào bất kỳ màn hình nào; token được lưu bằng SecureStore trên iOS/Android và `localStorage` trong web/Extension Mobile View, rồi kiểm tra lại với server khi mở app. Cấu hình `ORGANIZER_INVITE_CODE` trong `server/.env` trước khi tạo tài khoản organizer.
 
 API danh sách trả một mảng trong `data`:
 
@@ -218,7 +245,7 @@ API danh sách trả một mảng trong `data`:
 {
   "data": [
     {
-      "id": "event-future-tech",
+      "id": "cmhr2n4e30000000000000001",
       "title": "Seminar Công nghệ và AI",
       "description": "...",
       "location": "Phòng B2.02",
@@ -230,17 +257,18 @@ API danh sách trả một mảng trong `data`:
 }
 ```
 
-API chi tiết trả một sự kiện trong `data`:
+API chi tiết trả một sự kiện và trạng thái đăng ký trong `data` (`registration` là null nếu chưa đăng ký, hoặc `{ id, eventId, createdAt, checkedInAt }`):
 
 ```json
 {
   "data": {
-    "id": "event-future-tech",
+    "id": "cmhr2n4e30000000000000001",
     "title": "Seminar Công nghệ và AI",
     "description": "...",
     "location": "Phòng B2.02",
     "startsAt": "2026-10-10T06:30:00.000Z",
-    "endsAt": "2026-10-10T09:30:00.000Z"
+    "endsAt": "2026-10-10T09:30:00.000Z",
+    "registration": null
   },
   "error": null
 }

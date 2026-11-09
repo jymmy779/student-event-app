@@ -233,6 +233,8 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 | GET | `/organizer/events/:id/stats` | Số đăng ký, check-in, chưa check-in và tỷ lệ tham dự |
 | PATCH | `/organizer/events/:id/visibility` | Organizer ẩn/hiện sự kiện của mình |
 
+Bộ lọc tìm kiếm trên trang Khám phá là đầu việc mới giao Khôi, chưa có trong API hiện tại. Dự kiến mở rộng `GET /events` bằng `format`, `from`, `to`, `status` và `registration`.
+
 Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). Hướng dẫn cấu hình Gemini và API ghi chú: [docs/AI_NOTE_SETUP.md](./docs/AI_NOTE_SETUP.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API cá nhân và ghi chú yêu cầu bearer token sau khi đăng nhập.
 
 API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer lúc tạo event để phần QR/check-in tích hợp sau này.
@@ -334,20 +336,21 @@ Bảng này là phân công triển khai trong repository. File đăng ký đề
 
 | Thành viên | Luồng tính năng sở hữu | Code và tài liệu phải bàn giao |
 | --- | --- | --- |
-| **Lương Việt Thái** | **Khám phá, chi tiết sự kiện và tích hợp ứng dụng** | Mobile danh sách/tìm kiếm/chi tiết/loading/error/empty; `GET /events?q=` và `GET /events/:id`; navigation, safe area và API client dùng chung; integration test danh sách/tìm kiếm/chi tiết; tài liệu cài đặt, API contract và checklist tích hợp |
-| **Trần Chí Quốc** | **Đăng ký và lịch cá nhân** | Component thao tác đăng ký trên màn chi tiết và tab Lịch; API đăng ký/hủy/lịch; demo user và phần schema `Registration`; test đăng ký lặp, hủy, chặn hủy sau check-in và persistence; tài liệu luồng đăng ký |
-| **Phạm Tấn Đạt** | **QR check-in** | Màn camera/quét QR và xử lý quyền; API check-in; token và `checkedInAt` trong DB; test token sai, chưa đăng ký, lặp, đúng/ngoài giờ và request đồng thời; nhật ký và hướng dẫn test QR trên máy thật |
-| **Lê Thanh Kha** | **Ghi chú và tóm tắt AI** | Màn nhập/xem ghi chú; API lưu/đọc note và gọi AI; phần schema `Note`; validation nội dung; test note rỗng/quá dài, quyền sở hữu, AI success/timeout/error; tài liệu cấu hình khóa AI và bằng chứng gọi thật |
-| **Chu Anh Khôi** | **Nhắc giờ, công cụ demo và phát hành** | Local notification khi đăng ký/hủy; trạng thái từ chối quyền; script/trang tạo QR cho 3 event mẫu; test logic lên/hủy lịch; UI polish/animation; EAS Build/APK; tài liệu build, ảnh, video và slide demo |
+| **Lương Việt Thái** | **Tài khoản, organizer và tích hợp** | Phần khám phá/chi tiết, tài khoản và quản lý sự kiện đã triển khai; hỗ trợ review API và tích hợp luồng chung, không nhận thêm hạng mục tính năng mới |
+| **Trần Chí Quốc** | **Đăng ký và lịch cá nhân** | Đăng ký/hủy, lịch cá nhân, sức chứa và hạn đăng ký; phối hợp Đạt để thống nhất trạng thái đăng ký phục vụ check-in |
+| **Phạm Tấn Đạt** | **QR và check-in** | Luồng QR cho sự kiện, màn quét và quyền camera, API check-in; xác nhận đăng ký, token, khung giờ và chống check-in lặp |
+| **Lê Thanh Kha** | **Ghi chú và AI** | Giữ luồng ghi chú/tóm tắt hiện tại; cùng nhóm hội ý ngày 10/11 về hướng hỏi đáp theo sự kiện rồi mới chốt thay đổi |
+| **Chu Anh Khôi** | **Thông báo, modal xác nhận và bộ lọc tìm kiếm** | Nhắc giờ local; modal dùng chung xác nhận thao tác như hủy đăng ký/ẩn sự kiện; bộ lọc ngay trang Khám phá theo hình thức, ngày, trạng thái sự kiện và tình trạng đăng ký |
 
 ### Quy tắc làm việc
 
-- Mỗi người sở hữu một luồng end-to-end: tự làm phần DB/schema cần thiết, API, mobile UI, xử lý lỗi, test và tài liệu của tính năng đó. Không tách một người chỉ làm backend hoặc chỉ làm kiểm thử.
-- Mỗi người tự viết mục báo cáo và cung cấp ảnh/log/test result cho phần mình; Thái chỉ tổng hợp và kiểm tra tính nhất quán.
+- Mỗi người sở hữu một luồng chức năng end-to-end, dùng chung API, dữ liệu và danh tính từ phiên đăng nhập.
+- Khi thay đổi API hoặc schema, cập nhật hợp đồng liên quan và phối hợp với người phụ trách tính năng phụ thuộc.
 - Người phụ trách một tính năng phải bàn giao loading/error/empty, khóa thao tác lặp, test tự động và checklist máy thật; không chỉ bàn giao giao diện chạy happy path.
 - Backend và mobile tuân thủ API contract trong specs; không tự tạo dữ liệu giả riêng trên từng màn hình.
 - Mỗi nhánh chỉ tập trung một tính năng, ví dụ `feature/qr-check-in` hoặc `feature/ai-notes`.
 - Trước khi gửi pull request hoặc merge: chạy typecheck, lint phần mobile, build/test phần server có liên quan và ghi kết quả thật.
+- Demo trên lớp chạy trực tiếp bằng Expo Go; không cần APK/EAS hay slide nếu giảng viên không yêu cầu.
 - Không merge khi test đang fail. Phần chưa thử trên điện thoại phải ghi `NOT RUN`, không tự đánh dấu pass.
 - Thái chịu trách nhiệm tích hợp/review chung và luồng Khám phá → Chi tiết, không mặc định làm thay code, test hoặc tài liệu chưa hoàn thành của thành viên khác.
 - Khi API contract hoặc schema thay đổi, người thay đổi phải báo nhóm và cập nhật README/spec/test trong cùng pull request.

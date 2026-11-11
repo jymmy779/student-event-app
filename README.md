@@ -6,7 +6,7 @@ Theo dõi phân công hiện hành, phụ thuộc và nhật ký triển khai t�
 
 - Mobile: Expo, React Native, TypeScript và Expo Router.
 - Backend: Node.js, Express, TypeScript, Prisma và SQLite.
-- Hiện có: khám phá và chi tiết sự kiện, đăng nhập/session, quản lý sự kiện cho organizer, đăng ký/lịch cá nhân và ghi chú/tóm tắt AI qua API backend.
+- Hiện có: khám phá và chi tiết sự kiện, đăng nhập/session, quản lý sự kiện cho organizer, đăng ký/lịch cá nhân, QR/check-in và ghi chú/tóm tắt AI qua API backend.
 
 ## Yêu cầu môi trường
 
@@ -217,6 +217,7 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 | GET | `/events/:id` | Chi tiết công khai và trạng thái đăng ký của tài khoản đang đăng nhập |
 | POST | `/events/:id/register` | Đăng ký idempotent; từ chối event đã hết hạn hoặc organizer đã ẩn |
 | DELETE | `/events/:id/register` | Hủy nếu chưa check-in; đã check-in trả 409 |
+| POST | `/events/:id/check-in` | Xác minh QR, thời gian server và registration rồi ghi nhận `checkedInAt` |
 | GET | `/me/registrations` | Lịch của tài khoản đang đăng nhập, kèm event công khai, theo giờ bắt đầu |
 | POST | `/auth/register` | Tạo tài khoản sinh viên và session |
 | POST | `/auth/register-organizer` | Tạo tài khoản organizer; cần mã mời |
@@ -237,7 +238,7 @@ Bộ lọc tìm kiếm trên trang Khám phá là đầu việc mới giao Khôi
 
 Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). Hướng dẫn cấu hình Gemini và API ghi chú: [docs/AI_NOTE_SETUP.md](./docs/AI_NOTE_SETUP.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API cá nhân và ghi chú yêu cầu bearer token sau khi đăng nhập.
 
-API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer lúc tạo event để phần QR/check-in tích hợp sau này.
+API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer và hiển thị trong màn quản lý event dưới dạng URL `/check-in?...`. Khi quét bằng app khác, URL mở trang hướng dẫn “Cần sử dụng app Student Event”; khi quét bằng Student Event, app đọc URL và gọi backend. Backend tiếp tục kiểm tra token, bearer session và khung giờ từ 30 phút trước khi bắt đầu đến lúc kết thúc.
 
 Sau khi cập nhật code, áp migration bằng `npm run db:deploy` trong thư mục `server`. Tất cả endpoint đăng ký, chi tiết cá nhân và organizer yêu cầu `Authorization: Bearer <token>` do đăng nhập/đăng ký trả về. App yêu cầu đăng nhập trước khi vào bất kỳ màn hình nào; token được lưu bằng SecureStore trên iOS/Android và `localStorage` trong web/Extension Mobile View, rồi kiểm tra lại với server khi mở app. Cấu hình `ORGANIZER_INVITE_CODE` trong `server/.env` trước khi tạo tài khoản organizer.
 

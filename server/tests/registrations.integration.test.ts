@@ -30,6 +30,36 @@ beforeEach(async () => {
 afterAll(async () => { await prisma.$disconnect(); await apiPrisma.$disconnect(); });
 
 describe("registration and personal schedule", () => {
+  it("checks in a registered user only during the server window and is idempotently rejected", async () => {
+    const now = Date.now();
+    await prisma.event.update({ where: { id: event.id }, data: {
+      startsAt: new Date(now + 60 * 60 * 1000),
+      endsAt: new Date(now + 2 * 60 * 60 * 1000),
+    } });
+    await asDemo(request(app).post(endpoint)).expect(200);
+    const tooEarly = await asDemo(request(app).post(`/events/${event.id}/check-in`)).send({ token: event.qrToken }).expect(422);
+    expect(tooEarly.body.error.code).toBe("CHECK_IN_OUTSIDE_WINDOW");
+
+    await prisma.event.update({ where: { id: event.id }, data: {
+      startsAt: new Date(now - 10 * 60 * 1000),
+      endsAt: new Date(now + 60 * 60 * 1000),
+    } });
+    const checkedIn = await asDemo(request(app).post(`/events/${event.id}/check-in`)).send({ token: event.qrToken }).expect(200);
+    expect(checkedIn.body.data.checkedInAt).toEqual(expect.any(String));
+    const repeated = await asDemo(request(app).post(`/events/${event.id}/check-in`)).send({ token: event.qrToken }).expect(409);
+    expect(repeated.body.error.code).toBe("ALREADY_CHECKED_IN");
+    expect((await asDemo(request(app).get(`/events/${event.id}`)).expect(200)).body.data.registration.checkedInAt).toBe(checkedIn.body.data.checkedInAt);
+  });
+
+  it("rejects an invalid QR token and a user without registration", async () => {
+    const invalid = await asDemo(request(app).post(`/events/${event.id}/check-in`)).send({ token: "wrong-token" }).expect(400);
+    expect(invalid.body.error.code).toBe("INVALID_QR_TOKEN");
+    const now = Date.now();
+    await prisma.event.update({ where: { id: event.id }, data: { startsAt: new Date(now - 10 * 60 * 1000), endsAt: new Date(now + 60 * 60 * 1000) } });
+    const notRegistered = await asDemo(request(app).post(`/events/${event.id}/check-in`)).send({ token: event.qrToken }).expect(403);
+    expect(notRegistered.body.error.code).toBe("REGISTRATION_REQUIRED");
+  });
+
   it("persists a registration and exposes the same state in detail and schedule", async () => {
     const before = await asDemo(request(app).get(`/events/${event.id}`)).expect(200);
     expect(before.body.data.registration).toBeNull();

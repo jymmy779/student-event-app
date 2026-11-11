@@ -150,6 +150,15 @@ export default function EventDetailScreen() {
                 )
               }
             />
+            {event.registration && !event.registration.checkedInAt && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push({ pathname: "/check-in", params: { eventId: event.id } })}
+                style={styles.checkInButton}
+              >
+                <Text style={styles.checkInButtonText}>Quét QR để check-in</Text>
+              </Pressable>
+            )}
           </View>
 
           <Text style={styles.sectionTitle}>Mô tả</Text>
@@ -211,6 +220,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 18,
   },
+  checkInButton: { alignItems: "center", backgroundColor: "#1d4ed8", borderRadius: 10, marginTop: 12, padding: 12 },
+  checkInButtonText: { color: "#fff", fontSize: 14, fontWeight: "800" },
   eyebrow: {
     color: "#1d4ed8",
     fontSize: 12,

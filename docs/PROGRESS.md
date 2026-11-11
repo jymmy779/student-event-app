@@ -21,7 +21,7 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 | --- | --- | --- | --- | --- |
 | Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung (đã triển khai) | `Thai` | `HỖ TRỢ REVIEW/TÍCH HỢP` | API dùng chung, migration và xác nhận luồng trên Expo Go |
 | Trần Chí Quốc | Đăng ký/hủy và lịch cá nhân | `feature/quoc-registration-schedule` | `ĐÃ CÓ PHẦN NỀN — TIẾP TỤC TÍCH HỢP` | Session user; phối hợp Đạt về check-in |
-| Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `ĐANG LÀM` | Registration/session của Quốc |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `CHỜ KIỂM THỬ MÁY THẬT` | Registration/session của Quốc |
 | Lê Thanh Kha | Ghi chú/tóm tắt AI hiện tại; xem xét hướng hỏi đáp sau khi nhóm hội ý | `kha` | `GIỮ HIỆN TRẠNG — CHỜ HỘI Ý 10/11` | Gemini key và thống nhất phạm vi với nhóm |
 | Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | `Khoi` | `ĐƯỢC GIAO — CHƯA TRIỂN KHAI` | Hình thức/ngày/trạng thái event; phối hợp Quốc về tình trạng đăng ký |
 
@@ -89,7 +89,7 @@ Bảng này thay thế bảng phân công hiện hành ở đầu file sau khi t
 | --- | --- | --- | --- |
 | Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung | Phần chính đã triển khai; hỗ trợ review/tích hợp | Hỗ trợ các thành viên theo API/schema, không nhận đầu việc tính năng mới |
 | Trần Chí Quốc | Đăng ký/hủy đăng ký và lịch cá nhân | Phần nền đã có; cần xác nhận sau cập nhật auth/session | Dùng cùng registration/session với Đạt; phối hợp Khôi về trạng thái lọc đăng ký |
-| Phạm Tấn Đạt | QR và check-in trọn luồng | Đang triển khai | Nối QR với registration, session và thời gian sự kiện |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | Đã triển khai — chờ kiểm thử máy thật | Nối QR với registration, session và thời gian sự kiện |
 | Lê Thanh Kha | Ghi chú và tóm tắt AI hiện tại | Đã tích hợp; giữ hiện trạng đến buổi hội ý ngày 10/11 | Sau hội ý mới chốt có đổi AI sang hỏi đáp sự kiện hay không |
 | Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | Đầu việc mới; chưa triển khai | Phối hợp Quốc về tình trạng đăng ký; làm modal xác nhận dùng chung |
 
@@ -111,3 +111,9 @@ Phần tài khoản/organizer của Thái đã được merge qua PR #4; phần 
 - Đạt phụ trách QR và check-in trọn luồng; Quốc tiếp tục đăng ký/hủy và lịch cá nhân.
 
 - Thái đã làm phần tài khoản/organizer; từ đây hỗ trợ tích hợp và review
+
+## Triển khai QR và check-in — 2026-11-11
+
+| Thành viên | Phần đã làm | Bằng chứng / kiểm tra | Còn lại |
+| --- | --- | --- | --- |
+| Phạm Tấn Đạt | API `POST /events/:id/check-in`, xác minh token, bearer session, registration, khung giờ 30 phút trước đến giờ kết thúc; màn camera Expo; QR organizer; nút quét từ Lịch và Chi tiết | Đã thêm code và test hồi quy cho check-in thành công, quá sớm, QR sai, chưa đăng ký và check-in lặp; mobile typecheck đạt | Cần chạy test backend đầy đủ sau khi sửa các lỗi baseline cũ và kiểm thử Expo Go trên Android/iOS thật |

@@ -21,7 +21,7 @@ const noteSelect = {
 
 notesRouter.get("/events/:id/note", requireUser, async (request, response, next) => {
   try {
-    const eventId = request.params.id;
+    const eventId = String(request.params.id);
     const userId = request.user!.id;
 
     const event = await prisma.event.findUnique({
@@ -50,7 +50,7 @@ notesRouter.get("/events/:id/note", requireUser, async (request, response, next)
 
 notesRouter.put("/events/:id/note", requireUser, async (request, response, next) => {
   try {
-    const eventId = request.params.id;
+    const eventId = String(request.params.id);
     const userId = request.user!.id;
     const content = request.body?.content;
 
@@ -104,7 +104,7 @@ notesRouter.put("/events/:id/note", requireUser, async (request, response, next)
 
 notesRouter.post("/events/:id/summarize", requireUser, async (request, response, next) => {
   try {
-    const eventId = request.params.id;
+    const eventId = String(request.params.id);
     const userId = request.user!.id;
 
     const event = await prisma.event.findUnique({

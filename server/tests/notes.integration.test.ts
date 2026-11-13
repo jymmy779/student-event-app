@@ -35,14 +35,14 @@ beforeEach(async () => {
   await prisma.user.deleteMany();
 
   await prisma.event.create({ data: testEvent });
-  for (const [id, number] of [userOneId, userTwoId, userThreeId].entries()) {
+  for (const [index, userId] of [userOneId, userTwoId, userThreeId].entries()) {
     const user = await prisma.user.create({
-      data: { id, name: `User ${number + 1}`, email: `u${number + 1}@test.com` },
+      data: { id: userId, name: `User ${index + 1}`, email: `u${index + 1}@test.com` },
     });
     const session = await createSession(user.id);
-    if (number === 0) userOneToken = session.token;
-    if (number === 1) userTwoToken = session.token;
-    if (number === 2) userThreeToken = session.token;
+    if (index === 0) userOneToken = session.token;
+    if (index === 1) userTwoToken = session.token;
+    if (index === 2) userThreeToken = session.token;
   }
 });
 

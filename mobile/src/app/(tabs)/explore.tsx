@@ -3,6 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import {
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,6 +15,10 @@ import { api } from "@/lib/api";
 import { formatDate, formatEventFormat, getEventStatus } from "@/lib/format";
 import type { EventItem } from "@/lib/types";
 
+type FormatFilter = "IN_PERSON" | "ONLINE" | "HYBRID";
+type StatusFilter = "UPCOMING" | "ONGOING" | "ENDED";
+type RegistrationFilter = "OPEN" | "FULL" | "CLOSED";
+
 export default function ExploreScreen() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -21,6 +26,12 @@ export default function ExploreScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+
+  const [formatFilter, setFormatFilter] = useState<FormatFilter | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter | undefined>(undefined);
+  const [registrationFilter, setRegistrationFilter] = useState<RegistrationFilter | undefined>(undefined);
+
+  const hasActiveFilter = formatFilter !== undefined || statusFilter !== undefined || registrationFilter !== undefined;
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 300);
@@ -35,7 +46,12 @@ export default function ExploreScreen() {
         setLoading(true);
         setError(null);
         try {
-          const data = await api.events(debouncedQuery);
+          const activeFilters = {
+            format: formatFilter,
+            status: statusFilter,
+            registration: registrationFilter,
+          };
+          const data = await api.events(debouncedQuery, activeFilters);
           if (active && requestVersion === reloadKey) setEvents(data);
         } catch (caught) {
           if (active)
@@ -52,8 +68,32 @@ export default function ExploreScreen() {
       return () => {
         active = false;
       };
-    }, [debouncedQuery, reloadKey]),
+    }, [debouncedQuery, reloadKey, formatFilter, statusFilter, registrationFilter]),
   );
+
+  function clearFilters() {
+    setFormatFilter(undefined);
+    setStatusFilter(undefined);
+    setRegistrationFilter(undefined);
+  }
+
+  function toggleFormatFilter(value: FormatFilter) {
+    setFormatFilter((prev) => (prev === value ? undefined : value));
+  }
+
+  function toggleStatusFilter(value: StatusFilter) {
+    setStatusFilter((prev) => (prev === value ? undefined : value));
+  }
+
+  function toggleRegistrationFilter(value: RegistrationFilter) {
+    setRegistrationFilter((prev) => (prev === value ? undefined : value));
+  }
+
+  const emptyMessage = hasActiveFilter
+    ? "Không có sự kiện nào khớp bộ lọc — thử thay đổi tiêu chí tìm kiếm."
+    : query
+    ? "Thử một từ khóa khác."
+    : "Các sự kiện mới sẽ xuất hiện tại đây.";
 
   return (
     <SafeAreaView edges={["left", "right"]} style={styles.screen}>
@@ -70,6 +110,125 @@ export default function ExploreScreen() {
             style={styles.search}
           />
         </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterBar}
+        >
+          {/* Format filters */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện trực tiếp"
+            onPress={() => toggleFormatFilter("IN_PERSON")}
+            style={[styles.chip, formatFilter === "IN_PERSON" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, formatFilter === "IN_PERSON" && styles.chipTextActive]}>
+              Trực tiếp
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện online"
+            onPress={() => toggleFormatFilter("ONLINE")}
+            style={[styles.chip, formatFilter === "ONLINE" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, formatFilter === "ONLINE" && styles.chipTextActive]}>
+              Online
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện kết hợp"
+            onPress={() => toggleFormatFilter("HYBRID")}
+            style={[styles.chip, formatFilter === "HYBRID" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, formatFilter === "HYBRID" && styles.chipTextActive]}>
+              Kết hợp
+            </Text>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          {/* Status filters */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện sắp diễn ra"
+            onPress={() => toggleStatusFilter("UPCOMING")}
+            style={[styles.chip, statusFilter === "UPCOMING" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, statusFilter === "UPCOMING" && styles.chipTextActive]}>
+              Sắp diễn ra
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện đang diễn ra"
+            onPress={() => toggleStatusFilter("ONGOING")}
+            style={[styles.chip, statusFilter === "ONGOING" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, statusFilter === "ONGOING" && styles.chipTextActive]}>
+              Đang diễn ra
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện đã kết thúc"
+            onPress={() => toggleStatusFilter("ENDED")}
+            style={[styles.chip, statusFilter === "ENDED" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, statusFilter === "ENDED" && styles.chipTextActive]}>
+              Đã kết thúc
+            </Text>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          {/* Registration filters */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện còn chỗ"
+            onPress={() => toggleRegistrationFilter("OPEN")}
+            style={[styles.chip, registrationFilter === "OPEN" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, registrationFilter === "OPEN" && styles.chipTextActive]}>
+              Còn chỗ
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện hết chỗ"
+            onPress={() => toggleRegistrationFilter("FULL")}
+            style={[styles.chip, registrationFilter === "FULL" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, registrationFilter === "FULL" && styles.chipTextActive]}>
+              Hết chỗ
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Lọc sự kiện đã đóng đăng ký"
+            onPress={() => toggleRegistrationFilter("CLOSED")}
+            style={[styles.chip, registrationFilter === "CLOSED" && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, registrationFilter === "CLOSED" && styles.chipTextActive]}>
+              Đóng đăng ký
+            </Text>
+          </Pressable>
+
+          {hasActiveFilter && (
+            <>
+              <View style={styles.separator} />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Xóa tất cả bộ lọc"
+                onPress={clearFilters}
+                style={styles.clearChip}
+              >
+                <Text style={styles.clearChipText}>✕ Xóa bộ lọc</Text>
+              </Pressable>
+            </>
+          )}
+        </ScrollView>
       </SafeAreaView>
       {loading ? (
         <LoadingState label="Đang tải sự kiện…" />
@@ -86,11 +245,7 @@ export default function ExploreScreen() {
           ListEmptyComponent={
             <EmptyState
               title="Không tìm thấy sự kiện"
-              message={
-                query
-                  ? "Thử một từ khóa khác."
-                  : "Các sự kiện mới sẽ xuất hiện tại đây."
-              }
+              message={emptyMessage}
             />
           }
           renderItem={({ item }) => (
@@ -169,6 +324,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 14,
     paddingVertical: 11,
+  },
+  filterBar: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 4,
+    gap: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  chip: {
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  chipActive: {
+    backgroundColor: "#fff",
+    borderColor: "#fff",
+  },
+  chipText: {
+    color: "#bfdbfe",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  chipTextActive: {
+    color: "#1e3a8a",
+  },
+  separator: {
+    width: 1,
+    height: 20,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    marginHorizontal: 2,
+  },
+  clearChip: {
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(239,68,68,0.3)",
+    borderWidth: 1,
+    borderColor: "rgba(239,68,68,0.5)",
+  },
+  clearChipText: {
+    color: "#fecaca",
+    fontSize: 13,
+    fontWeight: "600",
   },
   list: { padding: 16, gap: 14 },
   empty: { flexGrow: 1 },

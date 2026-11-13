@@ -6,7 +6,7 @@ import { LoadingState } from "@/components/ScreenState";
 
 function RootNavigator() {
   const { token, loading } = useAuth();
-  const segments = useSegments();
+  const segments = useSegments() as unknown as string[];
   const atLogin = segments.length === 0 || segments[0] === "index";
   const darkStatusIcons = atLogin || (segments[0] === "(tabs)" && (segments[1] === "organizer" || segments[1] === "profile"));
 

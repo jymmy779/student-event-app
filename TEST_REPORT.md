@@ -1,6 +1,43 @@
 # Báo cáo kiểm thử Student Event App
 
-## Ghi chú và tóm tắt AI — báo cáo từ nhánh Kha
+## Kết quả ngày 2026-11-12 — Bộ lọc tìm kiếm, ConfirmModal và Local Notifications
+
+Phạm vi Chu Anh Khôi:
+- Mở rộng `GET /events` hỗ trợ lọc theo `q`, `format`, `from`, `to`, `status`, `registration`. Trả 400 `INVALID_FILTER` khi giá trị không hợp lệ.
+- 10 integration tests mới cho bộ lọc trong `server/tests/events.integration.test.ts`. Sửa chữa đồng bộ session test giúp toàn bộ 44 tests của server pass 100%.
+- Filter bar UI trên `explore.tsx` với chip lọc nhanh theo hình thức, trạng thái, tình trạng đăng ký và nút xóa bộ lọc.
+- `ConfirmModal` dùng chung cho xác nhận hủy đăng ký sự kiện và ẩn/hiện sự kiện phía Organizer.
+- Helper `notifications.ts` (`expo-notifications` + `AsyncStorage`) tự động xin quyền, lên lịch nhắc 30 phút trước sự kiện, hủy lịch khi hủy đăng ký, xử lý từ chối quyền mà không crash app.
+- Unit test logic thông báo trong `mobile/src/lib/__tests__/notifications.test.ts`.
+
+Môi trường: Windows 11, Node.js v22.16.0, npm, Expo SDK 58, React Native 0.88.1, Prisma 6, Vitest 4.1.11.
+
+| Khu vực | Lệnh đã chạy | Kết quả | Ghi chú |
+| --- | --- | --- | --- |
+| Server typecheck | `npm run typecheck` (server) | PASS | 0 lỗi TypeScript |
+| Server build | `npm run build` (server) | PASS | `dist/` compile thành công |
+| Server integration | `npm test` (server) | PASS | 3 files, **44 passed (44/44)**, 0 failed, 0 skipped |
+| Mobile typecheck | `npx tsc --noEmit` (mobile) | PASS | 0 lỗi TypeScript (bao gồm test types) |
+| Mobile lint | `npm run lint` (mobile) | PASS | 0 errors (7 warnings không chặn) |
+| Mobile web export | `npx expo export --platform web` | PASS | 18 static routes bundle thành công vào `dist/` |
+| Expo Go máy thật (Thông báo) | Chưa thực hiện trên thiết bị thật | NOT RUN | Cần điện thoại Android/iOS thật quét QR Expo Go |
+
+### Checklist kiểm thử máy thật (Thông báo local & Bộ lọc):
+1. **Bộ lọc Khám phá**:
+   - Mở tab Khám phá: bấm chọn chip "Trực tiếp" -> chỉ hiện event IN_PERSON.
+   - Bấm chọn tiếp "Sắp diễn ra" -> chỉ hiện event IN_PERSON sắp diễn ra.
+   - Bấm nút "Xóa bộ lọc" -> danh sách quay về mặc định.
+   - Nhập từ khóa kết hợp chọn bộ lọc: kiểm tra khi không có kết quả, màn hình hiện EmptyState thông báo rõ ràng.
+2. **ConfirmModal**:
+   - Vào chi tiết một sự kiện đã đăng ký -> bấm "Hủy đăng ký": modal xuất hiện với 2 nút "Xác nhận hủy" (màu đỏ) và "Giữ đăng ký".
+   - Bấm "Giữ đăng ký": modal đóng, trạng thái đăng ký giữ nguyên.
+   - Bấm "Xác nhận hủy": nút hiện loading spinner, sau khi hoàn tất trạng thái chuyển về "Chưa đăng ký".
+   - Vào tab Quản lý sự kiện (tài khoản Organizer) -> bấm nút "Ẩn"/"Hiện" trên một sự kiện: modal xác nhận xuất hiện trước khi áp dụng thay đổi.
+3. **Local Notification nhắc giờ**:
+   - Mở app lần đầu, đăng ký 1 sự kiện tương lai (>30 phút): hệ điều hành hiện popup xin quyền thông báo.
+   - Nếu từ chối quyền: app không bị crash, đăng ký vẫn thành công, xuất hiện dòng nhắc màu cam: "Chưa bật thông báo — bật trong Cài đặt để nhận nhắc giờ sự kiện."
+   - Nếu cấp quyền: thông báo được lên lịch trước 30 phút giờ bắt đầu sự kiện.
+   - Hủy đăng ký sự kiện: thông báo đã lên lịch tự động bị hủy khỏi hàng đợi của hệ thống.
 
 PR của Kha ghi nhận 14 test Note/AI trong tổng 20 integration test, cùng các trường hợp lưu/đọc ghi chú, giới hạn nội dung, cô lập dữ liệu theo user, lỗi Gemini và timeout. Báo cáo gốc cũng ghi nhận typecheck/build server, typecheck/lint/export mobile và một lần gọi Gemini thật đạt.
 

@@ -23,7 +23,7 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 | Trần Chí Quốc | Đăng ký/hủy và lịch cá nhân | `feature/quoc-registration-schedule` | `ĐÃ CÓ PHẦN NỀN — TIẾP TỤC TÍCH HỢP` | Session user; phối hợp Đạt về check-in |
 | Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `ĐANG LÀM` | Registration/session của Quốc |
 | Lê Thanh Kha | Ghi chú/tóm tắt AI hiện tại; xem xét hướng hỏi đáp sau khi nhóm hội ý | `kha` | `GIỮ HIỆN TRẠNG — CHỜ HỘI Ý 10/11` | Gemini key và thống nhất phạm vi với nhóm |
-| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | `Khoi` | `ĐƯỢC GIAO — CHƯA TRIỂN KHAI` | Hình thức/ngày/trạng thái event; phối hợp Quốc về tình trạng đăng ký |
+| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | `Khoi` | `ĐÃ TRIỂN KHAI & PASS TEST — CHỜ TEST MÁY THẬT` | Đã xong backend filters + test, UI Khám phá, ConfirmModal và local notifications helper |
 
 ## Bảng cập nhật của thành viên
 
@@ -34,6 +34,7 @@ Mỗi thành viên cập nhật một dòng khi bắt đầu hoặc hoàn thành
 | 2026-09-25 | Lương Việt Thái | Thiết lập baseline khám phá và tìm kiếm sự kiện | Có danh sách, tìm kiếm và API `GET /events?q=` | Commit `586b468`; cần đối chiếu lại test hiện hành | Chưa có các API tính năng còn lại | Hoàn thiện tích hợp và bàn giao contract |
 | 2026-10-26 | Lương Việt Thái | Chuẩn hóa safe area cho các tab hiện tại | `explore` và `schedule` dùng `SafeAreaView`; root có `SafeAreaProvider` | `npx tsc --noEmit`: đạt; `npm run lint`: đạt; Expo Go trên điện thoại: đạt | Không có | Bàn giao và tích hợp |
 | 2026-10-26 | Lương Việt Thái | Hoàn thiện luồng danh sách đến chi tiết sự kiện | Có route `/events/[id]`, API `GET /events/:id`, loading/error/retry và không lộ `qrToken` | Server typecheck/build: đạt; 6/6 integration tests đạt; mobile typecheck/lint: đạt; Expo Go trên điện thoại: đạt | Trạng thái đăng ký thuộc luồng của Quốc | Bàn giao điểm tích hợp đăng ký |
+| 2026-11-12 | Chu Anh Khôi | Bộ lọc tìm kiếm sự kiện (backend + mobile), ConfirmModal dùng chung, nhắc giờ Local Notification | API GET /events hỗ trợ format/from/to/status/registration; UI filter chips & clear filter; ConfirmModal tích hợp hủy đăng ký & ẩn/hiện sự kiện; helper expo-notifications lên lịch nhắc trước 30 phút | Server typecheck/build: PASS; 44/44 integration tests PASS (10 test filter mới); mobile typecheck: PASS; lint: PASS; expo export web: PASS | Thông báo trên thiết bị thật cần test qua Expo Go | Test trên điện thoại Android/iOS thật theo checklist; bàn giao cho Quốc/Đạt |
 
 ## Mẫu nhật ký mới
 
@@ -91,7 +92,7 @@ Bảng này thay thế bảng phân công hiện hành ở đầu file sau khi t
 | Trần Chí Quốc | Đăng ký/hủy đăng ký và lịch cá nhân | Phần nền đã có; cần xác nhận sau cập nhật auth/session | Dùng cùng registration/session với Đạt; phối hợp Khôi về trạng thái lọc đăng ký |
 | Phạm Tấn Đạt | QR và check-in trọn luồng | Đang triển khai | Nối QR với registration, session và thời gian sự kiện |
 | Lê Thanh Kha | Ghi chú và tóm tắt AI hiện tại | Đã tích hợp; giữ hiện trạng đến buổi hội ý ngày 10/11 | Sau hội ý mới chốt có đổi AI sang hỏi đáp sự kiện hay không |
-| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | Đầu việc mới; chưa triển khai | Phối hợp Quốc về tình trạng đăng ký; làm modal xác nhận dùng chung |
+| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | Đã triển khai xong, 44/44 tests pass | Chờ kiểm thử máy thật trên Expo Go; sẵn sàng bàn giao cho Quốc & Đạt |
 
 ### Tài khoản demo
 
@@ -111,3 +112,22 @@ Phần tài khoản/organizer của Thái đã được merge qua PR #4; phần 
 - Đạt phụ trách QR và check-in trọn luồng; Quốc tiếp tục đăng ký/hủy và lịch cá nhân.
 
 - Thái đã làm phần tài khoản/organizer; từ đây hỗ trợ tích hợp và review
+
+## Bàn giao triển khai của Chu Anh Khôi — 2026-11-12
+
+Hoàn thành trọn bộ 3 đầu việc được giao:
+1. **Bộ lọc tìm kiếm Khám phá**:
+   - Backend `GET /events`: hỗ trợ lọc kết hợp `q`, `format`, `from`, `to`, `status`, `registration`. Trả 400 nếu tham số không hợp lệ. Lọc bằng Prisma query, không lộ `qrToken`, không trả event ẩn.
+   - Thêm 10 integration tests mới kiểm tra từng bộ lọc và kết hợp: tất cả pass.
+   - Mobile: Filter bar trên `explore.tsx` với chip lọc nhanh (Hình thức, Trạng thái, Tình trạng đăng ký), nút Xóa bộ lọc và EmptyState phù hợp khi không tìm thấy kết quả.
+2. **ConfirmModal dùng chung**:
+   - Component `ConfirmModal.tsx` accessible, hỗ trợ loading, disabled chống bấm lặp, chế độ destructive màu đỏ.
+   - Tích hợp vào `RegistrationActions.tsx` khi sinh viên hủy đăng ký.
+   - Tích hợp vào `organizer.tsx` khi organizer thực hiện ẩn/hiện sự kiện.
+3. **Nhắc giờ Local Notifications**:
+   - Helper `mobile/src/lib/notifications.ts` dùng `expo-notifications` và `AsyncStorage`.
+   - Xin quyền notification nhẹ nhàng; nếu từ chối quyền thì app không crash, hiển thị cảnh báo hướng dẫn mở Cài đặt.
+   - Khi đăng ký sự kiện thành công -> tự động lên lịch nhắc trước 30 phút (nếu thời điểm nhắc còn trong tương lai) và lưu mapping ID.
+   - Khi hủy đăng ký -> tự động hủy notification tương ứng.
+   - Đã thêm plugin `expo-notifications` vào `app.json`.
+   - Viết unit test trong `mobile/src/lib/__tests__/notifications.test.ts`.

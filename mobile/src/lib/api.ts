@@ -170,10 +170,23 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
     }),
-  events: (query = "") =>
-    request<EventItem[]>(
-      `/events${query ? `?q=${encodeURIComponent(query)}` : ""}`,
-    ),
+  events: (query?: string, filters?: {
+    format?: 'IN_PERSON' | 'ONLINE' | 'HYBRID';
+    from?: string;
+    to?: string;
+    status?: 'UPCOMING' | 'ONGOING' | 'ENDED';
+    registration?: 'OPEN' | 'FULL' | 'CLOSED';
+  }) => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (filters?.format !== undefined) params.set("format", filters.format);
+    if (filters?.from !== undefined) params.set("from", filters.from);
+    if (filters?.to !== undefined) params.set("to", filters.to);
+    if (filters?.status !== undefined) params.set("status", filters.status);
+    if (filters?.registration !== undefined) params.set("registration", filters.registration);
+    const qs = params.toString();
+    return request<EventItem[]>(`/events${qs ? `?${qs}` : ""}`);
+  },
   event: (id: string) =>
     request<EventDetail>(`/events/${encodeURIComponent(id)}`),
   register: (id: string) =>

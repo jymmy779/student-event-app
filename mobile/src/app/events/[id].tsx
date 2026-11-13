@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +14,12 @@ export default function EventDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [now, setNow] = useState(0);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNow(Date.now());
+  }, [reloadKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -137,12 +143,15 @@ export default function EventDetailScreen() {
             <RegistrationActions
               key={event.id}
               eventId={event.id}
+              eventTitle={event.title}
+              eventStartsAt={event.startsAt}
               registration={event.registration}
-              expired={new Date(event.endsAt).getTime() <= Date.now()}
+              expired={now > 0 && new Date(event.endsAt).getTime() <= now}
               full={event.remainingSlots <= 0}
               registrationClosed={
                 !!event.registrationDeadline &&
-                new Date(event.registrationDeadline).getTime() <= Date.now()
+                now > 0 &&
+                new Date(event.registrationDeadline).getTime() <= now
               }
               onChange={(registration) =>
                 setEvent((current) =>

@@ -1,17 +1,25 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Pressable, StyleSheet, Text, View } from "react-native";
 import { api } from "@/lib/api";
 import { parseCheckInQrValue } from "@/lib/check-in";
+import { useAuth } from "@/lib/auth-context";
 
 export function CheckInScanner({ expectedEventId }: { expectedEventId?: string }) {
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { user } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
   const [message, setMessage] = useState("Đưa mã QR sự kiện vào khung quét.");
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
   const [completedEventId, setCompletedEventId] = useState<string | null>(null);
+  const [checkedInAt, setCheckedInAt] = useState<string | null>(null);
   const scanning = useRef(false);
+
+  useEffect(() => () => {
+    if (retryTimer.current) clearTimeout(retryTimer.current);
+  }, []);
 
   async function handleBarcodeScanned({ data }: { data: string }) {
     if (scanning.current || completed) return;
@@ -22,13 +30,17 @@ export function CheckInScanner({ expectedEventId }: { expectedEventId?: string }
       const payload = parseCheckInQrValue(data);
       if (!payload) throw new Error("QR phải sử dụng bằng APP Student Event.");
       if (expectedEventId && payload.eventId !== expectedEventId) throw new Error("QR không đúng với sự kiện đang mở.");
-      await api.checkIn(payload.eventId, payload.token);
+      const registration = await api.checkIn(payload.eventId, payload.token);
       setCompletedEventId(payload.eventId);
+      setCheckedInAt(registration.checkedInAt);
       setCompleted(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không thể check-in.");
-      setMessage("Bạn có thể đưa lại QR vào khung để thử lại.");
-      scanning.current = false;
+      setMessage("QR đã được xử lý. Bạn có thể thử lại sau 10 giây.");
+      retryTimer.current = setTimeout(() => {
+        scanning.current = false;
+        retryTimer.current = null;
+      }, 10_000);
     }
   }
 
@@ -39,11 +51,24 @@ export function CheckInScanner({ expectedEventId }: { expectedEventId?: string }
     <Button title="Cho phép camera" onPress={() => void requestPermission()} />
   </View>;
 
+  if (user?.role === "ORGANIZER") return <View style={styles.center}>
+    <Text style={styles.title}>Chức năng dành cho sinh viên</Text>
+    <Text style={styles.description}>Tài khoản Organizer không thể đăng ký hoặc quét QR check-in.</Text>
+  </View>;
+
   if (completed && completedEventId) return <View style={styles.successScreen}>
     <View style={styles.successCard}>
       <View style={styles.successIcon}><Text style={styles.successIconText}>✓</Text></View>
       <Text style={styles.successTitle}>Check-in thành công!</Text>
-      <Text style={styles.successMessage}>Bạn đã check-in sự kiện thành công. Thông tin đã được cập nhật vào lịch của bạn.</Text>
+      <View style={styles.checkInDetails}>
+        <Text style={styles.detailLabel}>Sinh viên</Text>
+        <Text style={styles.detailValue}>{user?.name ?? "Không xác định"}</Text>
+        <Text style={styles.detailLabel}>Email</Text>
+        <Text style={styles.detailValue}>{user?.email ?? "Không xác định"}</Text>
+        <Text style={styles.detailLabel}>Thời gian check-in</Text>
+        <Text style={styles.detailValue}>{checkedInAt ? formatCheckInTime(checkedInAt) : "Không xác định"}</Text>
+      </View>
+      <Text style={styles.successMessage}>Thông tin check-in đã được xác minh và cập nhật vào lịch của bạn.</Text>
       <Pressable
         accessibilityRole="button"
         onPress={() => router.replace({ pathname: "/events/[id]", params: { id: completedEventId } })}
@@ -67,6 +92,13 @@ export function CheckInScanner({ expectedEventId }: { expectedEventId?: string }
   </View>;
 }
 
+function formatCheckInTime(value: string) {
+  return new Date(value).toLocaleString("vi-VN", {
+    dateStyle: "short",
+    timeStyle: "medium",
+  });
+}
+
 const styles = StyleSheet.create({
   screen: { backgroundColor: "#0f172a", flex: 1 },
   successScreen: { alignItems: "center", backgroundColor: "#eff6ff", flex: 1, justifyContent: "center", padding: 24 },
@@ -75,6 +107,9 @@ const styles = StyleSheet.create({
   successIconText: { color: "#16a34a", fontSize: 58, fontWeight: "800", lineHeight: 68 },
   successTitle: { color: "#166534", fontSize: 28, fontWeight: "900", marginTop: 22, textAlign: "center" },
   successMessage: { color: "#475569", fontSize: 17, lineHeight: 26, marginTop: 12, textAlign: "center" },
+  checkInDetails: { alignSelf: "stretch", backgroundColor: "#f8fafc", borderColor: "#dbe3f0", borderRadius: 14, borderWidth: 1, marginTop: 20, padding: 16 },
+  detailLabel: { color: "#64748b", fontSize: 12, fontWeight: "700", marginTop: 8, textTransform: "uppercase" },
+  detailValue: { color: "#0f172a", fontSize: 16, fontWeight: "700", marginTop: 3 },
   successButton: { alignItems: "center", backgroundColor: "#1d4ed8", borderRadius: 12, marginTop: 24, padding: 15, width: "100%" },
   successButtonText: { color: "#fff", fontSize: 16, fontWeight: "800" },
   center: { alignItems: "center", backgroundColor: "#f5f7fb", flex: 1, gap: 14, justifyContent: "center", padding: 24 },

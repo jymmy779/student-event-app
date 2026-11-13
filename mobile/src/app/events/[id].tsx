@@ -5,11 +5,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorState, LoadingState } from "@/components/ScreenState";
 import { RegistrationActions } from "@/components/RegistrationActions";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { formatDate, formatEventFormat, getEventStatus } from "@/lib/format";
 import type { EventDetail } from "@/lib/types";
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +135,7 @@ export default function EventDetailScreen() {
             </View>
           </View>
 
-          <View style={styles.registration}>
+          {user?.role !== "ORGANIZER" && <View style={styles.registration}>
             <RegistrationActions
               key={event.id}
               eventId={event.id}
@@ -159,7 +161,7 @@ export default function EventDetailScreen() {
                 <Text style={styles.checkInButtonText}>Quét QR để check-in</Text>
               </Pressable>
             )}
-          </View>
+          </View>}
 
           <Text style={styles.sectionTitle}>Mô tả</Text>
           <Text style={styles.description}>{event.description}</Text>
@@ -189,6 +191,17 @@ export default function EventDetailScreen() {
               </View>
             </Pressable>
           </View>
+
+          {event.registration?.checkedInAt && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Về màn hình khám phá"
+              onPress={() => router.replace("/explore")}
+              style={({ pressed }) => [styles.exploreButton, pressed && styles.exploreButtonPressed]}
+            >
+              <Text style={styles.exploreButtonText}>Về màn hình khám phá</Text>
+            </Pressable>
+          )}
         </ScrollView>
       ) : null}
     </SafeAreaView>
@@ -338,4 +351,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "600",
   },
+  exploreButton: {
+    alignItems: "center",
+    backgroundColor: "#1d4ed8",
+    borderRadius: 12,
+    marginTop: 24,
+    padding: 15,
+  },
+  exploreButtonPressed: { opacity: 0.75 },
+  exploreButtonText: { color: "#fff", fontSize: 16, fontWeight: "800" },
 });

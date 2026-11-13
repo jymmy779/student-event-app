@@ -18,6 +18,10 @@ function getEventId(value: unknown, response: Response): string | null {
 registrationsRouter.post("/events/:id/register", requireUser, async (request, response, next) => {
   try {
     const user = request.user!;
+    if (user.role !== "STUDENT") {
+      response.status(403).json({ data: null, error: { code: "STUDENT_REQUIRED", message: "Chỉ tài khoản sinh viên mới có thể đăng ký sự kiện." } });
+      return;
+    }
     const eventId = getEventId(request.params.id, response);
     if (!eventId) return;
     const event = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true, endsAt: true, registrationDeadline: true, remainingSlots: true, isHidden: true } });
@@ -81,6 +85,10 @@ registrationsRouter.post("/events/:id/register", requireUser, async (request, re
 registrationsRouter.delete("/events/:id/register", requireUser, async (request, response, next) => {
   try {
     const user = request.user!;
+    if (user.role !== "STUDENT") {
+      response.status(403).json({ data: null, error: { code: "STUDENT_REQUIRED", message: "Chỉ tài khoản sinh viên mới có thể hủy đăng ký sự kiện." } });
+      return;
+    }
     const eventId = getEventId(request.params.id, response);
     if (!eventId) return;
     const event = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
@@ -109,6 +117,10 @@ registrationsRouter.delete("/events/:id/register", requireUser, async (request, 
 registrationsRouter.post("/events/:id/check-in", requireUser, async (request, response, next) => {
   try {
     const user = request.user!;
+    if (user.role !== "STUDENT") {
+      response.status(403).json({ data: null, error: { code: "STUDENT_REQUIRED", message: "Chỉ tài khoản sinh viên mới có thể check-in." } });
+      return;
+    }
     const eventId = getEventId(request.params.id, response);
     if (!eventId) return;
     const token = request.body?.token;

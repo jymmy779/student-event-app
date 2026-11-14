@@ -238,7 +238,9 @@ Bộ lọc tìm kiếm trên trang Khám phá là đầu việc mới giao Khôi
 
 Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). Hướng dẫn cấu hình Gemini và API ghi chú: [docs/AI_NOTE_SETUP.md](./docs/AI_NOTE_SETUP.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API cá nhân và ghi chú yêu cầu bearer token sau khi đăng nhập.
 
-API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer và hiển thị trong màn quản lý event dưới dạng URL `/check-in?...`. Khi quét bằng app khác, URL mở trang hướng dẫn “Cần sử dụng app Student Event”; khi quét bằng Student Event, app đọc URL và gọi backend. Backend tiếp tục kiểm tra token, bearer session và khung giờ từ 30 phút trước khi bắt đầu đến lúc kết thúc.
+API danh sách và chi tiết không trả `qrToken`; token chỉ được trả cho organizer và hiển thị trong màn quản lý event dưới dạng URL `/check-in?...`. Khi quét bằng app khác, URL mở trang hướng dẫn “Cần sử dụng app Student Event”; khi quét bằng Student Event, app đọc URL và gọi backend. Backend tiếp tục kiểm tra token, bearer session và khung giờ từ 1 tiếng trước khi bắt đầu đến lúc kết thúc. Khi sự kiện đã có lượt check-in, organizer không thể đổi giờ bắt đầu hoặc kết thúc; backend từ chối thay đổi này kể cả khi gọi API trực tiếp.
+
+Trạng thái “Đã check-in” được làm nổi bật bằng nhãn xanh trong giao diện. Các ô mật khẩu có nút biểu tượng mắt để hiện hoặc ẩn nội dung nhập.
 
 Sau khi cập nhật code, áp migration bằng `npm run db:deploy` trong thư mục `server`. Tất cả endpoint đăng ký, chi tiết cá nhân và organizer yêu cầu `Authorization: Bearer <token>` do đăng nhập/đăng ký trả về. App yêu cầu đăng nhập trước khi vào bất kỳ màn hình nào; token được lưu bằng SecureStore trên iOS/Android và `localStorage` trong web/Extension Mobile View, rồi kiểm tra lại với server khi mở app. Cấu hình `ORGANIZER_INVITE_CODE` trong `server/.env` trước khi tạo tài khoản organizer.
 

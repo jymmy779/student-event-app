@@ -18,7 +18,7 @@ Một sinh viên có thể xem sự kiện, đăng ký để thêm vào lịch t
 | Tối thiểu cho demo | Tạo dữ liệu sự kiện và QR | Seed 3 sự kiện với các trạng thái thời gian; trang nội bộ hoặc script in QR để dùng điện thoại khác/màn hình khác quét |
 | Mở rộng tùy chọn | Bộ lọc nâng cao, chia sẻ sự kiện, animation | Bộ lọc cơ bản đã được đưa vào phạm vi; phần nâng cao chỉ làm nếu còn thời gian hoặc rubric yêu cầu |
 
-Quy tắc demo: check-in mở từ 30 phút trước giờ bắt đầu đến giờ kết thúc; backend dùng giờ máy chủ. QR chỉ chứa một token ngẫu nhiên của sự kiện, không chứa dữ liệu người dùng. Đây là biện pháp chặn check-in sai hoặc lặp trong MVP; QR tĩnh có thể bị chia sẻ, nên không tuyên bố ngăn chặn mọi trường hợp gian lận. Nếu môn yêu cầu mức chống gian lận cao hơn, cần QR đổi theo thời gian hoặc kiểm tra tại điểm tổ chức.
+Quy tắc demo: check-in mở từ 1 tiếng trước giờ bắt đầu đến giờ kết thúc; backend dùng giờ máy chủ. QR chỉ chứa một token ngẫu nhiên của sự kiện, không chứa dữ liệu người dùng. Khi đã có ít nhất một lượt check-in, organizer không thể thay đổi giờ bắt đầu hoặc kết thúc. Đây là biện pháp chặn check-in sai hoặc lặp trong MVP; QR tĩnh có thể bị chia sẻ, nên không tuyên bố ngăn chặn mọi trường hợp gian lận. Nếu môn yêu cầu mức chống gian lận cao hơn, cần QR đổi theo thời gian hoặc kiểm tra tại điểm tổ chức.
 
 ## 3. Công nghệ đề xuất
 

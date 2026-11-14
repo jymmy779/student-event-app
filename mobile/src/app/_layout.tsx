@@ -6,8 +6,8 @@ import { LoadingState } from "@/components/ScreenState";
 
 function RootNavigator() {
   const { token, loading } = useAuth();
-  const segments = useSegments() as unknown as string[];
-  const atLogin = segments.length === 0 || segments[0] === "index";
+  const segments = useSegments() as string[];
+  const atLogin = !segments[0] || segments[0] === "index";
   const darkStatusIcons = atLogin || (segments[0] === "(tabs)" && (segments[1] === "organizer" || segments[1] === "profile"));
 
   if (loading) return <><StatusBar style="dark" /><SafeAreaView style={{ flex: 1, backgroundColor: "#f5f7fb" }}><LoadingState label="Đang khôi phục phiên đăng nhập…" /></SafeAreaView></>;
@@ -29,6 +29,7 @@ function RootNavigator() {
     <Stack.Screen name="organizer/events/[id]/stats" options={{ title: "Thống kê sự kiện" }} />
     <Stack.Screen name="events/[id]" options={{ title: "Chi tiết sự kiện" }} />
     <Stack.Screen name="notes/[eventId]" options={{ title: "Ghi chú & Tóm tắt AI" }} />
+    <Stack.Screen name="check-in" options={{ title: "Quét QR check-in" }} />
     <Stack.Screen name="account/edit-profile" options={{ title: "Thông tin cá nhân" }} />
     <Stack.Screen name="account/security" options={{ title: "Bảo mật" }} />
     <Stack.Screen name="account/help" options={{ title: "Hướng dẫn và hỗ trợ" }} />

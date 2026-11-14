@@ -21,7 +21,7 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 | --- | --- | --- | --- | --- |
 | Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung (đã triển khai) | `Thai` | `HỖ TRỢ REVIEW/TÍCH HỢP` | API dùng chung, migration và xác nhận luồng trên Expo Go |
 | Trần Chí Quốc | Đăng ký/hủy và lịch cá nhân | `feature/quoc-registration-schedule` | `ĐÃ CÓ PHẦN NỀN — TIẾP TỤC TÍCH HỢP` | Session user; phối hợp Đạt về check-in |
-| Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `ĐANG LÀM` | Registration/session của Quốc |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `CHỜ KIỂM THỬ MÁY THẬT` | Registration/session của Quốc |
 | Lê Thanh Kha | Ghi chú/tóm tắt AI hiện tại; xem xét hướng hỏi đáp sau khi nhóm hội ý | `kha` | `GIỮ HIỆN TRẠNG — CHỜ HỘI Ý 10/11` | Gemini key và thống nhất phạm vi với nhóm |
 | Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | `Khoi` | `ĐÃ TRIỂN KHAI & PASS TEST — CHỜ TEST MÁY THẬT` | Đã xong backend filters + test, UI Khám phá, ConfirmModal và local notifications helper |
 
@@ -35,7 +35,6 @@ Mỗi thành viên cập nhật một dòng khi bắt đầu hoặc hoàn thành
 | 2026-10-26 | Lương Việt Thái | Chuẩn hóa safe area cho các tab hiện tại | `explore` và `schedule` dùng `SafeAreaView`; root có `SafeAreaProvider` | `npx tsc --noEmit`: đạt; `npm run lint`: đạt; Expo Go trên điện thoại: đạt | Không có | Bàn giao và tích hợp |
 | 2026-10-26 | Lương Việt Thái | Hoàn thiện luồng danh sách đến chi tiết sự kiện | Có route `/events/[id]`, API `GET /events/:id`, loading/error/retry và không lộ `qrToken` | Server typecheck/build: đạt; 6/6 integration tests đạt; mobile typecheck/lint: đạt; Expo Go trên điện thoại: đạt | Trạng thái đăng ký thuộc luồng của Quốc | Bàn giao điểm tích hợp đăng ký |
 | 2026-11-12 | Chu Anh Khôi | Bộ lọc tìm kiếm sự kiện (backend + mobile), ConfirmModal dùng chung, nhắc giờ Local Notification | API GET /events hỗ trợ format/from/to/status/registration; UI filter chips & clear filter; ConfirmModal tích hợp hủy đăng ký & ẩn/hiện sự kiện; helper expo-notifications lên lịch nhắc trước 30 phút | Server typecheck/build: PASS; 44/44 integration tests PASS (10 test filter mới); mobile typecheck: PASS; lint: PASS; expo export web: PASS | Thông báo trên thiết bị thật cần test qua Expo Go | Test trên điện thoại Android/iOS thật theo checklist; bàn giao cho Quốc/Đạt |
-
 ## Mẫu nhật ký mới
 
 Sao chép dòng dưới đây và điền đủ thông tin. Không xóa các dòng lịch sử của thành viên khác.
@@ -90,7 +89,7 @@ Bảng này thay thế bảng phân công hiện hành ở đầu file sau khi t
 | --- | --- | --- | --- |
 | Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung | Phần chính đã triển khai; hỗ trợ review/tích hợp | Hỗ trợ các thành viên theo API/schema, không nhận đầu việc tính năng mới |
 | Trần Chí Quốc | Đăng ký/hủy đăng ký và lịch cá nhân | Phần nền đã có; cần xác nhận sau cập nhật auth/session | Dùng cùng registration/session với Đạt; phối hợp Khôi về trạng thái lọc đăng ký |
-| Phạm Tấn Đạt | QR và check-in trọn luồng | Đang triển khai | Nối QR với registration, session và thời gian sự kiện |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | Đã triển khai — chờ kiểm thử máy thật | Nối QR với registration, session và thời gian sự kiện |
 | Lê Thanh Kha | Ghi chú và tóm tắt AI hiện tại | Đã tích hợp; giữ hiện trạng đến buổi hội ý ngày 10/11 | Sau hội ý mới chốt có đổi AI sang hỏi đáp sự kiện hay không |
 | Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | Đã triển khai xong, 44/44 tests pass | Chờ kiểm thử máy thật trên Expo Go; sẵn sàng bàn giao cho Quốc & Đạt |
 
@@ -131,3 +130,16 @@ Hoàn thành trọn bộ 3 đầu việc được giao:
    - Khi hủy đăng ký -> tự động hủy notification tương ứng.
    - Đã thêm plugin `expo-notifications` vào `app.json`.
    - Viết unit test trong `mobile/src/lib/__tests__/notifications.test.ts`.
+
+## Triển khai QR và check-in — 2026-11-11
+
+| Thành viên | Phần đã làm | Bằng chứng / kiểm tra | Còn lại |
+| --- | --- | --- | --- |
+| Phạm Tấn Đạt | API `POST /events/:id/check-in`, xác minh token, bearer session, registration, khung giờ 30 phút trước đến giờ kết thúc; màn camera Expo; QR organizer; nút quét từ Lịch và Chi tiết | Đã thêm code và test hồi quy cho check-in thành công, quá sớm, QR sai, chưa đăng ký và check-in lặp; mobile typecheck đạt | Cần chạy test backend đầy đủ sau khi sửa các lỗi baseline cũ và kiểm thử Expo Go trên Android/iOS thật |
+
+## Cập nhật luồng check-in và giao diện - 2026-11-14
+
+- Mở thời gian check-in từ 30 phút lên 1 tiếng trước giờ bắt đầu; vẫn đóng check-in khi sự kiện kết thúc.
+- Khóa chỉnh sửa giờ bắt đầu/kết thúc sau lượt check-in đầu tiên; có chặn ở backend và khóa trường giờ trên form Organizer.
+- Làm nổi bật trạng thái “Đã check-in” bằng nhãn màu xanh; thêm nút biểu tượng mắt cho các ô mật khẩu.
+- Đã cập nhật README và đặc tả MVP. Chưa chạy test hoặc typecheck cho các thay đổi này.

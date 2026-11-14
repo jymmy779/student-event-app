@@ -39,6 +39,14 @@ Môi trường: Windows 11, Node.js v22.16.0, npm, Expo SDK 58, React Native 0.8
    - Nếu cấp quyền: thông báo được lên lịch trước 30 phút giờ bắt đầu sự kiện.
    - Hủy đăng ký sự kiện: thông báo đã lên lịch tự động bị hủy khỏi hàng đợi của hệ thống.
 
+## Cập nhật QR/check-in — 2026-11-11
+
+Đã triển khai endpoint `POST /events/:id/check-in`, màn quét QR bằng `expo-camera`, hiển thị QR cho organizer và nút mở quét từ Lịch/Chi tiết. Test hồi quy đã bổ sung các trường hợp thành công, check-in quá sớm, QR sai, chưa đăng ký và check-in lặp.
+
+`npx tsc --noEmit` phía mobile đạt. Backend test đầy đủ hiện chưa thể coi là PASS vì còn các lỗi baseline sau tích hợp trước đó: một số test cũ chưa gửi bearer token, test Note tạo user id dạng số dù schema đã chuyển sang CUID string, và server typecheck còn lỗi kiểu `request.params` ở các route cũ. Cần xử lý các lỗi này rồi chạy lại toàn bộ suite.
+
+## Ghi chú và tóm tắt AI — báo cáo từ nhánh Kha
+
 PR của Kha ghi nhận 14 test Note/AI trong tổng 20 integration test, cùng các trường hợp lưu/đọc ghi chú, giới hạn nội dung, cô lập dữ liệu theo user, lỗi Gemini và timeout. Báo cáo gốc cũng ghi nhận typecheck/build server, typecheck/lint/export mobile và một lần gọi Gemini thật đạt.
 
 Các kết quả trên được ghi nhận trước khi đổi cơ chế định danh từ `x-user-id`/demo user sang bearer session. Test đã được cập nhật để dùng session; cần chạy lại bộ kiểm thử sau khi tích hợp trước khi coi các kết quả này là đã xác nhận trên nhánh hợp nhất.
@@ -95,5 +103,5 @@ Phạm vi kiểm thử gồm danh sách, tìm kiếm, chi tiết sự kiện, đ
 ## Phạm vi chưa kiểm tra
 
 - Trạng thái, đăng ký, hủy đăng ký và lịch cá nhân chưa được triển khai.
-- Camera, QR check-in, notification và AI chưa nằm trong mốc hiện tại.
+- Notification vẫn chưa triển khai. Camera/QR check-in đã được triển khai ở cập nhật ngày 2026-11-11 nhưng chưa có bằng chứng chạy trên Expo Go của thiết bị Android/iOS thật.
 - Chưa có kết quả build APK; lần kiểm tra thiết bị hiện dùng Expo Go.

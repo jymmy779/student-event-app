@@ -26,13 +26,14 @@ export default function OrganizerEventFormScreen() {
   const [registrationDeadline, setRegistrationDeadline] = useState(() => new Date(defaultStart().getTime() - 60 * 60 * 1000));
   const [capacity, setCapacity] = useState("50");
   const [loadingEvent, setLoadingEvent] = useState(!!eventId);
+  const [hasCheckIns, setHasCheckIns] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!eventId) return;
     let active = true;
-    void api.organizerEvents().then((items) => {
+    void api.organizerEvents().then(async (items) => {
       const item = items.find((event) => event.id === eventId);
       if (!active) return;
       if (!item) {
@@ -47,6 +48,8 @@ export default function OrganizerEventFormScreen() {
       setEndsAt(new Date(item.endsAt));
       setRegistrationDeadline(new Date(item.registrationDeadline ?? new Date(item.startsAt).getTime() - 60 * 60 * 1000));
       setCapacity(String(item.capacity));
+      const stats = await api.organizerStats(eventId);
+      if (active) setHasCheckIns(stats.checkedIn > 0);
     }).catch((cause) => {
       if (active) setError(cause instanceof Error ? cause.message : "Không tải được sự kiện.");
     }).finally(() => {
@@ -115,8 +118,9 @@ export default function OrganizerEventFormScreen() {
           onChangeText={setLocation}
           placeholder={format === "ONLINE" ? "Ví dụ: Google Meet" : format === "HYBRID" ? "Ví dụ: Phòng A và Google Meet" : "Ví dụ: Hội trường A"}
         />
-        <DateTimeField label="Ngày và giờ bắt đầu" value={startsAt} onChange={setStartsAt} />
-        <DateTimeField label="Ngày và giờ kết thúc" value={endsAt} onChange={setEndsAt} />
+        <DateTimeField label="Ngày và giờ bắt đầu" value={startsAt} onChange={setStartsAt} disabled={hasCheckIns} />
+        <DateTimeField label="Ngày và giờ kết thúc" value={endsAt} onChange={setEndsAt} disabled={hasCheckIns} />
+        {hasCheckIns && <Text style={styles.lockNotice}>Sự kiện đã có người check-in. Không thể thay đổi thời gian bắt đầu hoặc kết thúc.</Text>}
         <DateTimeField label="Hạn đăng ký" value={registrationDeadline} onChange={setRegistrationDeadline} />
         <Field label="Số người tham gia tối đa" value={capacity} onChangeText={setCapacity} placeholder="Ví dụ: 50" keyboardType="number-pad" />
         {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
@@ -156,6 +160,7 @@ const styles = StyleSheet.create({
   formatText: { color: "#475569", fontSize: 13, fontWeight: "600" },
   formatTextSelected: { color: "#1d4ed8", fontWeight: "800" },
   error: { color: "#b91c1c", lineHeight: 20 },
+  lockNotice: { color: "#92400e", backgroundColor: "#fffbeb", borderRadius: 8, lineHeight: 20, padding: 10 },
   button: { alignItems: "center", backgroundColor: "#1d4ed8", borderRadius: 10, padding: 14 },
   buttonText: { color: "white", fontSize: 16, fontWeight: "700" },
   disabled: { opacity: 0.6 },

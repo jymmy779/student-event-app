@@ -124,7 +124,7 @@ export const api = {
     }>("/me/stats"),
   organizerStats: (id: string) =>
     request<{
-      event: { id: string; title: string; capacity: number; remainingSlots: number };
+      event: { id: string; title: string; capacity: number; remainingSlots: number; qrToken: string };
       registered: number;
       checkedIn: number;
       notCheckedIn: number;
@@ -198,6 +198,12 @@ export const api = {
       `/events/${encodeURIComponent(id)}/register`,
       { method: "DELETE" },
     ),
+  checkIn: (eventId: string, token: string) =>
+    request<Registration>(`/events/${encodeURIComponent(eventId)}/check-in`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    }),
   registrations: () => request<ScheduledRegistration[]>("/me/registrations"),
   getNote: (eventId: string) =>
     request<NoteItem | null>(`/events/${encodeURIComponent(eventId)}/note`),

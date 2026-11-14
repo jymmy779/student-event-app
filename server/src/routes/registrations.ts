@@ -18,6 +18,10 @@ function getEventId(value: unknown, response: Response): string | null {
 registrationsRouter.post("/events/:id/register", requireUser, async (request, response, next) => {
   try {
     const user = request.user!;
+    if (user.role !== "STUDENT") {
+      response.status(403).json({ data: null, error: { code: "STUDENT_REQUIRED", message: "Chỉ tài khoản sinh viên mới có thể đăng ký sự kiện." } });
+      return;
+    }
     const eventId = getEventId(request.params.id, response);
     if (!eventId) return;
     const event = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true, endsAt: true, registrationDeadline: true, remainingSlots: true, isHidden: true } });
@@ -81,6 +85,10 @@ registrationsRouter.post("/events/:id/register", requireUser, async (request, re
 registrationsRouter.delete("/events/:id/register", requireUser, async (request, response, next) => {
   try {
     const user = request.user!;
+    if (user.role !== "STUDENT") {
+      response.status(403).json({ data: null, error: { code: "STUDENT_REQUIRED", message: "Chỉ tài khoản sinh viên mới có thể hủy đăng ký sự kiện." } });
+      return;
+    }
     const eventId = getEventId(request.params.id, response);
     if (!eventId) return;
     const event = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
@@ -103,6 +111,54 @@ registrationsRouter.delete("/events/:id/register", requireUser, async (request, 
       }
     }
     response.json({ data: { registered: false }, error: null });
+  } catch (error) { next(error); }
+});
+
+registrationsRouter.post("/events/:id/check-in", requireUser, async (request, response, next) => {
+  try {
+    const user = request.user!;
+    if (user.role !== "STUDENT") {
+      response.status(403).json({ data: null, error: { code: "STUDENT_REQUIRED", message: "Chỉ tài khoản sinh viên mới có thể check-in." } });
+      return;
+    }
+    const eventId = getEventId(request.params.id, response);
+    if (!eventId) return;
+    const token = request.body?.token;
+    if (typeof token !== "string" || !token.trim()) {
+      response.status(400).json({ data: null, error: { code: "INVALID_QR_TOKEN", message: "QR không chứa mã sự kiện hợp lệ." } });
+      return;
+    }
+    const event = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true, qrToken: true, startsAt: true, endsAt: true } });
+    if (!event) {
+      response.status(404).json({ data: null, error: { code: "EVENT_NOT_FOUND", message: "Không tìm thấy sự kiện." } });
+      return;
+    }
+    if (event.qrToken !== token.trim()) {
+      response.status(400).json({ data: null, error: { code: "INVALID_QR_TOKEN", message: "QR không đúng với sự kiện này." } });
+      return;
+    }
+    const registration = await prisma.registration.findUnique({ where: { userId_eventId: { userId: user.id, eventId } }, select: publicRegistrationSelect });
+    if (!registration) {
+      response.status(403).json({ data: null, error: { code: "REGISTRATION_REQUIRED", message: "Bạn cần đăng ký sự kiện trước khi check-in." } });
+      return;
+    }
+    if (registration.checkedInAt) {
+      response.status(409).json({ data: null, error: { code: "ALREADY_CHECKED_IN", message: "Bạn đã check-in sự kiện này rồi." } });
+      return;
+    }
+    const now = new Date();
+    const checkInOpensAt = new Date(event.startsAt.getTime() - 60 * 60 * 1000);
+    if (now < checkInOpensAt || now > event.endsAt) {
+      response.status(422).json({ data: null, error: { code: "CHECK_IN_OUTSIDE_WINDOW", message: "Check-in chỉ mở từ 1 tiếng trước giờ bắt đầu đến giờ kết thúc." } });
+      return;
+    }
+    const checkedInAt = new Date();
+    const updated = await prisma.registration.updateMany({ where: { id: registration.id, checkedInAt: null }, data: { checkedInAt } });
+    if (!updated.count) {
+      response.status(409).json({ data: null, error: { code: "ALREADY_CHECKED_IN", message: "Bạn đã check-in sự kiện này rồi." } });
+      return;
+    }
+    response.json({ data: { ...registration, checkedInAt: checkedInAt.toISOString() }, error: null });
   } catch (error) { next(error); }
 });
 

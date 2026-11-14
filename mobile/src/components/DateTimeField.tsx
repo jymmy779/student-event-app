@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-type Props = { label: string; value: Date; onChange: (value: Date) => void };
+type Props = { label: string; value: Date; onChange: (value: Date) => void; disabled?: boolean };
 const weekdays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
 function sameDay(a: Date, b: Date) {
@@ -12,7 +12,7 @@ function sameDay(a: Date, b: Date) {
   );
 }
 
-export function DateTimeField({ label, value, onChange }: Props) {
+export function DateTimeField({ label, value, onChange, disabled = false }: Props) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(
     () => new Date(value.getFullYear(), value.getMonth(), 1),
@@ -71,8 +71,9 @@ export function DateTimeField({ label, value, onChange }: Props) {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Chọn ngày ${label}`}
+            disabled={disabled}
             onPress={() => setCalendarOpen((open) => !open)}
-            style={styles.dateButton}
+            style={[styles.dateButton, disabled && styles.disabled]}
           >
             <Text style={styles.calendarIcon}>▦</Text>
             <Text style={styles.dateText}>
@@ -93,6 +94,7 @@ export function DateTimeField({ label, value, onChange }: Props) {
               value={timeDraft}
               onChangeText={changeTime}
               onBlur={() => setTimeDraft(formatTime(value))}
+              editable={!disabled}
               maxLength={5}
               placeholder="09:00"
               keyboardType="numbers-and-punctuation"
@@ -102,7 +104,7 @@ export function DateTimeField({ label, value, onChange }: Props) {
         </View>
       </View>
 
-      {calendarOpen && (
+      {calendarOpen && !disabled && (
         <View style={styles.calendar}>
           <View style={styles.monthBar}>
             <Pressable
@@ -239,6 +241,7 @@ const styles = StyleSheet.create({
     minHeight: 46,
     paddingHorizontal: 10,
   },
+  disabled: { backgroundColor: "#f1f5f9", opacity: 0.7 },
   calendarIcon: { color: "#1d4ed8", fontSize: 18 },
   dateText: { color: "#172554", flex: 1, fontSize: 13, fontWeight: "600" },
   chevron: { color: "#64748b", fontSize: 18 },

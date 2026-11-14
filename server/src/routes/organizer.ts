@@ -56,6 +56,12 @@ organizerRouter.patch("/organizer/events/:id", requireUser, requireOrganizer, as
     const updated = await prisma.$transaction(async (tx) => {
       const registered = await tx.registration.count({ where: { eventId: id } });
       if (capacity < registered) return { tooSmall: registered };
+      const checkedIn = await tx.registration.count({ where: { eventId: id, checkedInAt: { not: null } } });
+      const current = await tx.event.findUnique({ where: { id }, select: { startsAt: true, endsAt: true } });
+      if (checkedIn > 0 && current &&
+          (start.getTime() !== current.startsAt.getTime() || end.getTime() !== current.endsAt.getTime())) {
+        return { timeLocked: checkedIn };
+      }
       const event = await tx.event.update({ where: { id }, data: {
         title: title.trim(), description: description.trim(), location: location.trim(), format,
         startsAt: start, endsAt: end, registrationDeadline: deadline,
@@ -67,13 +73,17 @@ organizerRouter.patch("/organizer/events/:id", requireUser, requireOrganizer, as
       response.status(409).json({ data: null, error: { code: "CAPACITY_BELOW_REGISTERED", message: `Đã có ${updated.tooSmall} người đăng ký; sức chứa không thể thấp hơn.` } });
       return;
     }
+    if ("timeLocked" in updated) {
+      response.status(409).json({ data: null, error: { code: "EVENT_TIME_LOCKED_AFTER_CHECK_IN", message: "Không thể đổi thời gian sự kiện sau khi đã có người check-in." } });
+      return;
+    }
     response.json({ data: updated.event, error: null });
   } catch (error) { next(error); }
 });
 
 organizerRouter.get("/organizer/events", requireUser, requireOrganizer, async (request, response, next) => {
   try {
-    const events = await prisma.event.findMany({ where: { createdById: request.user!.id }, orderBy: { createdAt: "desc" }, select: { ...publicEventSelect, isHidden: true } });
+    const events = await prisma.event.findMany({ where: { createdById: request.user!.id }, orderBy: { createdAt: "desc" }, select: { ...publicEventSelect, qrToken: true, isHidden: true } });
     response.json({ data: events, error: null });
   } catch (error) { next(error); }
 });
@@ -98,7 +108,7 @@ organizerRouter.patch("/organizer/events/:id/visibility", requireUser, requireOr
 
 organizerRouter.get("/organizer/events/:id/stats", requireUser, requireOrganizer, async (request, response, next) => {
   try {
-    const event = await prisma.event.findFirst({ where: { id: String(request.params.id), createdById: request.user!.id }, select: { id: true, title: true, capacity: true, remainingSlots: true } });
+    const event = await prisma.event.findFirst({ where: { id: String(request.params.id), createdById: request.user!.id }, select: { id: true, title: true, capacity: true, remainingSlots: true, qrToken: true } });
     if (!event) {
       response.status(404).json({ data: null, error: { code: "EVENT_NOT_FOUND", message: "Không tìm thấy sự kiện của tài khoản này." } });
       return;

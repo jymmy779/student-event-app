@@ -89,6 +89,15 @@ export default function ScheduleScreen() {
                 <Text style={styles.meta}>Địa điểm: {item.event.location}</Text>
                 <Text style={styles.link}>Xem chi tiết →</Text>
               </Pressable>
+              {!item.checkedInAt && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.push({ pathname: "/check-in", params: { eventId: item.eventId } })}
+                  style={styles.checkInButton}
+                >
+                  <Text style={styles.checkInText}>Quét QR check-in</Text>
+                </Pressable>
+              )}
               <RegistrationActions
                 eventId={item.eventId}
                 registration={item}
@@ -118,4 +127,6 @@ const styles = StyleSheet.create({
   link: { color: "#1d4ed8", fontSize: 15, fontWeight: "600" },
   explore: { minHeight: 48, alignItems: "center", justifyContent: "center", marginBottom: 32 },
   pressed: { opacity: 0.7 },
+  checkInButton: { alignItems: "center", backgroundColor: "#1d4ed8", borderRadius: 10, padding: 12 },
+  checkInText: { color: "#fff", fontSize: 14, fontWeight: "800" },
 });

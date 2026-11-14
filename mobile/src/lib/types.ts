@@ -16,7 +16,7 @@ export type EventItem = {
   createdAt: string;
 };
 
-export type OrganizerEventItem = EventItem & { isHidden: boolean };
+export type OrganizerEventItem = EventItem & { isHidden: boolean; qrToken?: string };
 
 export type Registration = {
   id: string;

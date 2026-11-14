@@ -20,6 +20,7 @@ export function DateTimeField({ label, value, onChange, disabled = false }: Prop
   const [timeDraft, setTimeDraft] = useState(() => formatTime(value));
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimeDraft(formatTime(value));
   }, [value]);
 

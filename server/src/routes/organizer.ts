@@ -108,7 +108,7 @@ organizerRouter.patch("/organizer/events/:id/visibility", requireUser, requireOr
 
 organizerRouter.get("/organizer/events/:id/stats", requireUser, requireOrganizer, async (request, response, next) => {
   try {
-    const event = await prisma.event.findFirst({ where: { id: request.params.id, createdById: request.user!.id }, select: { id: true, title: true, capacity: true, remainingSlots: true, qrToken: true } });
+    const event = await prisma.event.findFirst({ where: { id: String(request.params.id), createdById: request.user!.id }, select: { id: true, title: true, capacity: true, remainingSlots: true, qrToken: true } });
     if (!event) {
       response.status(404).json({ data: null, error: { code: "EVENT_NOT_FOUND", message: "Không tìm thấy sự kiện của tài khoản này." } });
       return;

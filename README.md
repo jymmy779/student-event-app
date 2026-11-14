@@ -212,7 +212,7 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 
 | Method | Endpoint | Chức năng |
 | --- | --- | --- |
-| GET | `/events` | Lấy sự kiện đang hiển thị và đã hết hạn; đã hết hạn được đánh dấu, sự kiện organizer ẩn sẽ không hiện |
+| GET | `/events` | Lấy sự kiện đang hiển thị và đã hết hạn; hỗ trợ bộ lọc kết hợp `q`, `format` (IN_PERSON/ONLINE/HYBRID), `from`, `to` (ISO datetime), `status` (UPCOMING/ONGOING/ENDED) và `registration` (OPEN/FULL/CLOSED) |
 | GET | `/events?q=tu-khoa` | Tìm sự kiện có tên chứa từ khóa |
 | GET | `/events/:id` | Chi tiết công khai và trạng thái đăng ký của tài khoản đang đăng nhập |
 | POST | `/events/:id/register` | Đăng ký idempotent; từ chối event đã hết hạn hoặc organizer đã ẩn |
@@ -234,7 +234,7 @@ Prisma Studio và backend có thể chạy đồng thời ở hai terminal khác
 | GET | `/organizer/events/:id/stats` | Số đăng ký, check-in, chưa check-in và tỷ lệ tham dự |
 | PATCH | `/organizer/events/:id/visibility` | Organizer ẩn/hiện sự kiện của mình |
 
-Bộ lọc tìm kiếm trên trang Khám phá là đầu việc mới giao Khôi, chưa có trong API hiện tại. Dự kiến mở rộng `GET /events` bằng `format`, `from`, `to`, `status` và `registration`.
+Bộ lọc tìm kiếm trên trang Khám phá đã được Chu Anh Khôi triển khai hoàn tất cả backend và mobile: hỗ trợ lọc kết hợp theo hình thức, thời gian, trạng thái diễn ra và tình trạng đăng ký. Đồng thời đã tích hợp `ConfirmModal` dùng chung khi hủy đăng ký / ẩn hiện sự kiện và hệ thống thông báo local nhắc giờ 30 phút trước sự kiện.
 
 Chi tiết luồng đăng ký, API response và checklist máy thật: [docs/REGISTRATION_FLOW.md](./docs/REGISTRATION_FLOW.md). Hướng dẫn cấu hình Gemini và API ghi chú: [docs/AI_NOTE_SETUP.md](./docs/AI_NOTE_SETUP.md). POST đăng ký không cần body; DELETE trả `{ data: { registered: false }, error: null }`. API cá nhân và ghi chú yêu cầu bearer token sau khi đăng nhập.
 

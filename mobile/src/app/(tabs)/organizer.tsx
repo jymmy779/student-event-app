@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Redirect, router, useFocusEffect } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { ErrorState, LoadingState } from "@/components/ScreenState";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -16,6 +17,7 @@ export default function OrganizerScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [confirmHide, setConfirmHide] = useState<{ eventId: string; currentHidden: boolean } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -65,6 +67,10 @@ export default function OrganizerScreen() {
   }
 
   if (user?.role !== "ORGANIZER") return <Redirect href="/explore" />;
+
+  const confirmingEvent = confirmHide
+    ? events.find((e) => e.id === confirmHide.eventId)
+    : null;
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -128,7 +134,7 @@ export default function OrganizerScreen() {
               <Pressable
                 accessibilityRole="button"
                 disabled={busyId === item.id}
-                onPress={() => void toggleVisibility(item)}
+                onPress={() => setConfirmHide({ eventId: item.id, currentHidden: item.isHidden })}
                 style={[
                   styles.visibilityButton,
                   item.isHidden && styles.showButton,
@@ -150,6 +156,26 @@ export default function OrganizerScreen() {
         )}
       </View>
     </ScrollView>
+
+    <ConfirmModal
+      visible={confirmHide !== null}
+      title={confirmingEvent?.isHidden ? "Hiện sự kiện?" : "Ẩn sự kiện?"}
+      message={
+        confirmingEvent?.isHidden
+          ? `Sự kiện "${confirmingEvent.title}" sẽ hiển thị cho sinh viên.`
+          : `Sự kiện "${confirmingEvent?.title ?? ""}" sẽ bị ẩn khỏi danh sách.`
+      }
+      confirmLabel={confirmingEvent?.isHidden ? "Hiện sự kiện" : "Ẩn sự kiện"}
+      cancelLabel="Hủy"
+      destructive={!confirmingEvent?.isHidden}
+      loading={busyId === confirmHide?.eventId}
+      onConfirm={() => {
+        if (confirmingEvent) {
+          void toggleVisibility(confirmingEvent).then(() => setConfirmHide(null));
+        }
+      }}
+      onCancel={() => setConfirmHide(null)}
+    />
     </SafeAreaView>
   );
 }

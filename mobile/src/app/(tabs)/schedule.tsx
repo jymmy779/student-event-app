@@ -100,6 +100,8 @@ export default function ScheduleScreen() {
               )}
               <RegistrationActions
                 eventId={item.eventId}
+                eventTitle={item.event.title}
+                eventStartsAt={item.event.startsAt}
                 registration={item}
                 onChange={(registration) => updateRegistration(item.eventId, registration)}
               />

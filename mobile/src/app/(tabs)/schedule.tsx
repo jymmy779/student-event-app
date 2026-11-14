@@ -4,8 +4,19 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ScreenState";
 import { RegistrationActions } from "@/components/RegistrationActions";
-import { api } from "@/lib/api";
+import { ConfirmModal } from "@/components/ConfirmModal";
+import { api, ApiRequestError } from "@/lib/api";
 import { formatDate } from "@/lib/format";
+import {
+  cancelEventNotifications,
+  getDeclinedEventIds,
+  markEventUnavailable,
+  reconcileEventNotifications,
+  saveEventNotificationIds,
+  scheduleImmediateNotification,
+  scheduleRegistrationNotifications,
+  setEventDeclined,
+} from "@/lib/notifications";
 import type { Registration, ScheduledRegistration } from "@/lib/types";
 
 function eventStatus(item: ScheduledRegistration) {
@@ -21,6 +32,9 @@ export default function ScheduleScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [declinedIds, setDeclinedIds] = useState<string[]>([]);
+  const [attendanceConfirmation, setAttendanceConfirmation] = useState<ScheduledRegistration | null>(null);
+  const [attendanceBusy, setAttendanceBusy] = useState(false);
   const requestVersion = useRef(0);
 
   const load = useCallback(async (refresh = false) => {
@@ -30,7 +44,30 @@ export default function ScheduleScreen() {
     setError(null);
     try {
       const items = await api.registrations();
-      if (version === requestVersion.current) setRegistrations(items);
+      await reconcileEventNotifications(items);
+      await Promise.all(items.map(async (item) => {
+        try {
+          await api.event(item.eventId);
+          await markEventUnavailable(item.eventId, false);
+        } catch (cause) {
+          if (cause instanceof ApiRequestError && cause.code === "EVENT_NOT_FOUND") {
+            await cancelEventNotifications(item.eventId);
+            const alreadyNotified = await markEventUnavailable(item.eventId, true);
+            if (!alreadyNotified) {
+              await scheduleImmediateNotification(
+                "Sự kiện đã bị ẩn hoặc hủy",
+                `"${item.event.title}" hiện không còn hiển thị. Hãy kiểm tra với ban tổ chức.`,
+                item.eventId,
+              );
+            }
+          }
+        }
+      }));
+      const declined = await getDeclinedEventIds();
+      if (version === requestVersion.current) {
+        setRegistrations(items);
+        setDeclinedIds(declined);
+      }
     } catch (caught) {
       if (version === requestVersion.current) setError(caught instanceof Error ? caught.message : "Không thể tải lịch cá nhân.");
     } finally {
@@ -44,9 +81,37 @@ export default function ScheduleScreen() {
   }, [load]));
 
   function updateRegistration(eventId: string, registration: Registration | null) {
+    if (!registration) setDeclinedIds((current) => current.filter((id) => id !== eventId));
     setRegistrations((current) => registration
       ? current.map((item) => item.eventId === eventId ? { ...item, ...registration } : item)
       : current.filter((item) => item.eventId !== eventId));
+  }
+
+  function toggleAttendance(item: ScheduledRegistration) {
+    setAttendanceConfirmation(item);
+  }
+
+  async function confirmAttendance() {
+    const item = attendanceConfirmation;
+    if (!item || attendanceBusy) return;
+    const declined = declinedIds.includes(item.eventId);
+    setAttendanceBusy(true);
+    try {
+      await setEventDeclined(item.eventId, !declined);
+      if (!declined) await cancelEventNotifications(item.eventId);
+      else {
+        const ids = await scheduleRegistrationNotifications(
+          item.eventId, item.event.title, item.event.startsAt, item.event.endsAt,
+        );
+        await saveEventNotificationIds(item.eventId, ids);
+      }
+      setDeclinedIds((current) => declined ? current.filter((id) => id !== item.eventId) : [...current, item.eventId]);
+      setAttendanceConfirmation(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không cập nhật được lựa chọn tham gia.");
+    } finally {
+      setAttendanceBusy(false);
+    }
   }
 
   return (
@@ -77,6 +142,9 @@ export default function ScheduleScreen() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Text style={styles.badge}>{eventStatus(item)}</Text>
+              <Pressable accessibilityRole="button" onPress={() => toggleAttendance(item)} style={styles.attendanceToggle}>
+                <Text style={styles.attendanceToggleText}>{declinedIds.includes(item.eventId) ? "Đã đánh dấu không tham gia · Hoàn tác" : "Đánh dấu không tham gia"}</Text>
+              </Pressable>
               <Pressable
                 accessibilityRole="button"
                 accessibilityHint="Mở thông tin chi tiết của sự kiện"
@@ -102,6 +170,7 @@ export default function ScheduleScreen() {
                 eventId={item.eventId}
                 eventTitle={item.event.title}
                 eventStartsAt={item.event.startsAt}
+                eventEndsAt={item.event.endsAt}
                 registration={item}
                 onChange={(registration) => updateRegistration(item.eventId, registration)}
               />
@@ -109,6 +178,19 @@ export default function ScheduleScreen() {
           )}
         />
       )}
+      <ConfirmModal
+        visible={attendanceConfirmation !== null}
+        title={attendanceConfirmation && declinedIds.includes(attendanceConfirmation.eventId) ? "Tham gia sự kiện?" : "Đánh dấu không tham gia?"}
+        message={attendanceConfirmation && declinedIds.includes(attendanceConfirmation.eventId)
+          ? `Bỏ đánh dấu "${attendanceConfirmation.event.title}" là không tham gia?`
+          : `Bạn sẽ không tham gia "${attendanceConfirmation?.event.title ?? "sự kiện này"}"? Các nhắc giờ sẽ được tắt trên thiết bị này.`}
+        confirmLabel={attendanceConfirmation && declinedIds.includes(attendanceConfirmation.eventId) ? "Tham gia" : "Không tham gia"}
+        cancelLabel="Để sau"
+        destructive={!(attendanceConfirmation && declinedIds.includes(attendanceConfirmation.eventId))}
+        loading={attendanceBusy}
+        onConfirm={() => void confirmAttendance()}
+        onCancel={() => setAttendanceConfirmation(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -131,4 +213,6 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   checkInButton: { alignItems: "center", backgroundColor: "#1d4ed8", borderRadius: 10, padding: 12 },
   checkInText: { color: "#fff", fontSize: 14, fontWeight: "800" },
+  attendanceToggle: { alignSelf: "flex-start", paddingVertical: 4 },
+  attendanceToggleText: { color: "#b45309", fontSize: 13, fontWeight: "700" },
 });

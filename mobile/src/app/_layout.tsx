@@ -1,8 +1,18 @@
 import { Redirect, Stack, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import * as Notifications from "expo-notifications";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { LoadingState } from "@/components/ScreenState";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function RootNavigator() {
   const { token, loading } = useAuth();

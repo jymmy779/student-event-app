@@ -90,7 +90,13 @@ eventsRouter.get("/events", async (request, response, next) => {
     }
 
     if (typeof formatParam === "string") {
-      where["format"] = formatParam;
+      if (formatParam === "ONLINE") {
+        where["format"] = { in: ["ONLINE", "HYBRID"] };
+      } else if (formatParam === "IN_PERSON") {
+        where["format"] = { in: ["IN_PERSON", "HYBRID"] };
+      } else {
+        where["format"] = formatParam;
+      }
     }
 
     if (fromDate) {

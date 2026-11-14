@@ -7,8 +7,6 @@ import { ErrorState, LoadingState } from "@/components/ScreenState";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { OrganizerEventItem } from "@/lib/types";
-import QRCode from "react-native-qrcode-svg";
-import { getCheckInQrValue } from "@/lib/check-in";
 
 export default function OrganizerScreen() {
   const { user } = useAuth();
@@ -150,7 +148,6 @@ export default function OrganizerScreen() {
                   {item.isHidden ? "Hiện" : "Ẩn"}
                 </Text>
               </Pressable>
-              {item.qrToken && <View style={styles.qrBox}><QRCode value={getCheckInQrValue(item.id, item.qrToken)} size={88} /><Text style={styles.qrLabel}>QR check-in</Text></View>}
             </View>
           ))
         )}
@@ -248,6 +245,4 @@ const styles = StyleSheet.create({
   visibilityText: { color: "#be123c", fontSize: 12, fontWeight: "800" },
   showText: { color: "#047857" },
   disabled: { opacity: 0.55 },
-  qrBox: { alignItems: "center", gap: 4, marginLeft: 4 },
-  qrLabel: { color: "#64748b", fontSize: 10, fontWeight: "700" },
 });

@@ -3,6 +3,7 @@ import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DateTimeField } from "@/components/DateTimeField";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { EventFormat } from "@/lib/types";
@@ -29,6 +30,8 @@ export default function OrganizerEventFormScreen() {
   const [hasCheckIns, setHasCheckIns] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [formDirty, setFormDirty] = useState(false);
 
   useEffect(() => {
     if (!eventId) return;
@@ -97,16 +100,16 @@ export default function OrganizerEventFormScreen() {
         <Text style={styles.heading}>{eventId ? "Chỉnh sửa sự kiện" : "Tạo sự kiện"}</Text>
         <Text style={styles.sub}>Nhập thông tin chương trình và thời gian đăng ký</Text>
       {loadingEvent ? <Text style={styles.sub}>Đang tải sự kiện…</Text> : <View style={styles.card}>
-        <Field label="Tên sự kiện" value={title} onChangeText={setTitle} placeholder="Ví dụ: Hội thảo công nghệ" />
+        <Field label="Tên sự kiện" value={title} onChangeText={(value) => { setTitle(value); setFormDirty(true); }} placeholder="Ví dụ: Hội thảo công nghệ" />
         <View style={styles.field}>
           <Text style={styles.label}>Mô tả sự kiện</Text>
-          <TextInput value={description} onChangeText={setDescription} placeholder="Nội dung và thông tin cần biết" multiline style={[styles.input, styles.multiline]} />
+          <TextInput value={description} onChangeText={(value) => { setDescription(value); setFormDirty(true); }} placeholder="Nội dung và thông tin cần biết" multiline style={[styles.input, styles.multiline]} />
         </View>
         <View style={styles.field}>
           <Text style={styles.label}>Hình thức</Text>
           <View style={styles.formatOptions}>
             {([["IN_PERSON", "Trực tiếp"], ["ONLINE", "Trực tuyến"], ["HYBRID", "Kết hợp"]] as const).map(([value, label]) => (
-              <Pressable key={value} onPress={() => setFormat(value)} style={[styles.formatOption, format === value && styles.formatOptionSelected]}>
+              <Pressable key={value} onPress={() => { setFormat(value); setFormDirty(true); }} style={[styles.formatOption, format === value && styles.formatOptionSelected]}>
                 <Text style={[styles.formatText, format === value && styles.formatTextSelected]}>{label}</Text>
               </Pressable>
             ))}
@@ -115,23 +118,33 @@ export default function OrganizerEventFormScreen() {
         <Field
           label={format === "ONLINE" ? "Nền tảng / đường dẫn" : format === "HYBRID" ? "Địa điểm và đường dẫn" : "Địa điểm"}
           value={location}
-          onChangeText={setLocation}
+          onChangeText={(value) => { setLocation(value); setFormDirty(true); }}
           placeholder={format === "ONLINE" ? "Ví dụ: Google Meet" : format === "HYBRID" ? "Ví dụ: Phòng A và Google Meet" : "Ví dụ: Hội trường A"}
         />
-        <DateTimeField label="Ngày và giờ bắt đầu" value={startsAt} onChange={setStartsAt} disabled={hasCheckIns} />
-        <DateTimeField label="Ngày và giờ kết thúc" value={endsAt} onChange={setEndsAt} disabled={hasCheckIns} />
+        <DateTimeField label="Ngày và giờ bắt đầu" value={startsAt} onChange={(value) => { setStartsAt(value); setFormDirty(true); }} disabled={hasCheckIns} />
+        <DateTimeField label="Ngày và giờ kết thúc" value={endsAt} onChange={(value) => { setEndsAt(value); setFormDirty(true); }} disabled={hasCheckIns} />
         {hasCheckIns && <Text style={styles.lockNotice}>Sự kiện đã có người check-in. Không thể thay đổi thời gian bắt đầu hoặc kết thúc.</Text>}
-        <DateTimeField label="Hạn đăng ký" value={registrationDeadline} onChange={setRegistrationDeadline} />
-        <Field label="Số người tham gia tối đa" value={capacity} onChangeText={setCapacity} placeholder="Ví dụ: 50" keyboardType="number-pad" />
+        <DateTimeField label="Hạn đăng ký" value={registrationDeadline} onChange={(value) => { setRegistrationDeadline(value); setFormDirty(true); }} />
+        <Field label="Số người tham gia tối đa" value={capacity} onChangeText={(value) => { setCapacity(value); setFormDirty(true); }} placeholder="Ví dụ: 50" keyboardType="number-pad" />
         {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         <Pressable accessibilityRole="button" onPress={() => void save()} disabled={busy} style={[styles.button, busy && styles.disabled]}>
           <Text style={styles.buttonText}>{busy ? "Đang lưu…" : eventId ? "Lưu thay đổi" : "Tạo sự kiện"}</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.cancelButton}>
+        <Pressable accessibilityRole="button" onPress={() => formDirty ? setConfirmDiscard(true) : router.back()} style={styles.cancelButton}>
           <Text style={styles.cancelText}>Hủy</Text>
         </Pressable>
       </View>}
     </ScrollView>
+    <ConfirmModal
+      visible={confirmDiscard}
+      title="Bỏ thay đổi?"
+      message="Thông tin sự kiện chưa lưu sẽ bị mất nếu bạn rời khỏi trang này."
+      confirmLabel="Bỏ thay đổi"
+      cancelLabel="Tiếp tục chỉnh sửa"
+      destructive
+      onConfirm={() => { setConfirmDiscard(false); router.back(); }}
+      onCancel={() => setConfirmDiscard(false)}
+    />
     </SafeAreaView>
   );
 }

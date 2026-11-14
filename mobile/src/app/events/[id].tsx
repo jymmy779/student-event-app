@@ -147,6 +147,7 @@ export default function EventDetailScreen() {
               eventId={event.id}
               eventTitle={event.title}
               eventStartsAt={event.startsAt}
+              eventEndsAt={event.endsAt}
               registration={event.registration}
               expired={now > 0 && new Date(event.endsAt).getTime() <= now}
               full={event.remainingSlots <= 0}

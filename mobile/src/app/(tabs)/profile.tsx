@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 
@@ -9,6 +10,7 @@ export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [stats, setStats] = useState<{ registered: number; checkedIn: number; upcoming: number; createdEvents: number } | null>(null);
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -16,10 +18,10 @@ export default function ProfileScreen() {
       .catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : "Không tải được thống kê."); });
     return () => { active = false; };
   }, []));
-  async function handleSignOut() {
+  async function handleSignOut(): Promise<boolean> {
     setBusy(true); setError("");
-    try { await signOut(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "Không thể đăng xuất."); }
+    try { await signOut(); return true; }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "Không thể đăng xuất."); return false; }
     finally { setBusy(false); }
   }
   return <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -47,11 +49,22 @@ export default function ProfileScreen() {
       </View>
 
       {!!error && <Text style={styles.error}>{error}</Text>}
-      <Pressable accessibilityRole="button" disabled={busy} onPress={() => void handleSignOut()} style={({ pressed }) => [styles.signOut, pressed && styles.pressed, busy && styles.disabled]}>
+      <Pressable accessibilityRole="button" disabled={busy} onPress={() => setConfirmSignOut(true)} style={({ pressed }) => [styles.signOut, pressed && styles.pressed, busy && styles.disabled]}>
         <Text style={styles.signOutText}>{busy ? "Đang đăng xuất…" : "Đăng xuất"}</Text>
       </Pressable>
       <Text style={styles.footer}>Student Events · Tài khoản cá nhân</Text>
     </ScrollView>
+    <ConfirmModal
+      visible={confirmSignOut}
+      title="Đăng xuất?"
+      message="Bạn sẽ cần đăng nhập lại để xem lịch cá nhân và sử dụng các tính năng tài khoản."
+      confirmLabel="Đăng xuất"
+      cancelLabel="Ở lại"
+      destructive
+      loading={busy}
+      onConfirm={() => void handleSignOut().then((success) => { if (success) setConfirmSignOut(false); })}
+      onCancel={() => setConfirmSignOut(false)}
+    />
   </SafeAreaView>;
 }
 

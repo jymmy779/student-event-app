@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { api, ApiRequestError } from "@/lib/api";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { formatDate } from "@/lib/format";
 import {
-  cancelEventReminder,
+  cancelEventNotifications,
   requestNotificationPermission,
-  saveNotificationId,
-  scheduleEventReminder,
+  scheduleImmediateNotification,
+  scheduleRegistrationNotifications,
+  saveEventNotificationIds,
 } from "@/lib/notifications";
 import type { Registration } from "@/lib/types";
 
@@ -16,6 +17,7 @@ type Props = {
   registration: Registration | null;
   eventTitle?: string;
   eventStartsAt?: string;
+  eventEndsAt?: string;
   expired?: boolean;
   full?: boolean;
   registrationClosed?: boolean;
@@ -28,6 +30,7 @@ export function RegistrationActions({
   registration,
   eventTitle,
   eventStartsAt,
+  eventEndsAt,
   expired = false,
   full = false,
   registrationClosed = false,
@@ -56,24 +59,27 @@ export function RegistrationActions({
       let updated: Registration | null;
       if (registration) {
         await api.cancelRegistration(eventId);
-        await cancelEventReminder(eventId);
+        await cancelEventNotifications(eventId);
+        if (eventTitle) {
+          await scheduleImmediateNotification("Đã hủy đăng ký", `Bạn đã hủy đăng ký "${eventTitle}".`, eventId);
+        }
         updated = null;
         if (mounted.current) setPermissionDenied(false);
       } else {
+        const notificationsAllowed = await requestNotificationPermission();
         updated = await api.register(eventId);
-        if (eventTitle && eventStartsAt) {
-          const notifId = await scheduleEventReminder(eventId, eventTitle, eventStartsAt);
-          if (notifId) {
-            await saveNotificationId(eventId, notifId);
-          } else {
-            // Check if reminder is in the future but permission was denied
-            const remindTime = new Date(eventStartsAt).getTime() - 30 * 60 * 1000;
-            if (remindTime > Date.now()) {
-              const hasPermission = await requestNotificationPermission();
-              if (!hasPermission && mounted.current) {
-                setPermissionDenied(true);
-              }
-            }
+        if (eventTitle && eventStartsAt && eventEndsAt) {
+          if (notificationsAllowed) {
+            await scheduleImmediateNotification("Đăng ký thành công", `Bạn đã đăng ký "${eventTitle}".`, eventId);
+          }
+          const notifIds = notificationsAllowed
+            ? await scheduleRegistrationNotifications(eventId, eventTitle, eventStartsAt, eventEndsAt)
+            : [];
+          await saveEventNotificationIds(eventId, notifIds);
+          if (!notificationsAllowed && mounted.current) {
+            setPermissionDenied(true);
+          } else if (notificationsAllowed && notifIds.length === 0 && new Date(eventEndsAt).getTime() > Date.now() && mounted.current) {
+            setPermissionDenied(true);
           }
         }
       }
@@ -150,9 +156,14 @@ export function RegistrationActions({
               : "Đăng ký để thêm sự kiện vào lịch của bạn."}
           </Text>
           {permissionDenied && (
-            <Text style={styles.notifHint}>
-              Chưa bật thông báo — bật trong Cài đặt để nhận nhắc giờ sự kiện.
-            </Text>
+            <View style={styles.notifNotice}>
+              <Text style={styles.notifHint}>
+                Thông báo đang bị tắt hoặc không thể lên lịch. Bật quyền thông báo trong Cài đặt để nhận nhắc giờ sự kiện.
+              </Text>
+              <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()}>
+                <Text style={styles.settingsLink}>Mở Cài đặt</Text>
+              </Pressable>
+            </View>
           )}
           <ConfirmModal
             visible={confirming}
@@ -217,6 +228,8 @@ const styles = StyleSheet.create({
   checkedInText: { color: "#166534", fontSize: 14, fontWeight: "800" },
   hint: { color: "#64748b", fontSize: 14, lineHeight: 21 },
   notifHint: { color: "#d97706", fontSize: 13, lineHeight: 18 },
+  notifNotice: { gap: 6 },
+  settingsLink: { color: "#1d4ed8", fontSize: 13, fontWeight: "800" },
   button: {
     minHeight: 48,
     padding: 12,

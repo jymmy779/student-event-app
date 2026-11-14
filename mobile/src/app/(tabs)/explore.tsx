@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
 import {
   FlatList,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -30,8 +31,13 @@ export default function ExploreScreen() {
   const [formatFilter, setFormatFilter] = useState<FormatFilter | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<StatusFilter | undefined>(undefined);
   const [registrationFilter, setRegistrationFilter] = useState<RegistrationFilter | undefined>(undefined);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [draftFormat, setDraftFormat] = useState<FormatFilter | undefined>(undefined);
+  const [draftStatus, setDraftStatus] = useState<StatusFilter | undefined>(undefined);
+  const [draftRegistration, setDraftRegistration] = useState<RegistrationFilter | undefined>(undefined);
 
-  const hasActiveFilter = formatFilter !== undefined || statusFilter !== undefined || registrationFilter !== undefined;
+  const activeFilterCount = Number(formatFilter !== undefined) + Number(statusFilter !== undefined) + Number(registrationFilter !== undefined);
+  const hasActiveFilter = activeFilterCount > 0;
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 300);
@@ -77,16 +83,24 @@ export default function ExploreScreen() {
     setRegistrationFilter(undefined);
   }
 
-  function toggleFormatFilter(value: FormatFilter) {
-    setFormatFilter((prev) => (prev === value ? undefined : value));
+  function openFilters() {
+    setDraftFormat(formatFilter);
+    setDraftStatus(statusFilter);
+    setDraftRegistration(registrationFilter);
+    setFiltersOpen(true);
   }
 
-  function toggleStatusFilter(value: StatusFilter) {
-    setStatusFilter((prev) => (prev === value ? undefined : value));
+  function applyFilters() {
+    setFormatFilter(draftFormat);
+    setStatusFilter(draftStatus);
+    setRegistrationFilter(draftRegistration);
+    setFiltersOpen(false);
   }
 
-  function toggleRegistrationFilter(value: RegistrationFilter) {
-    setRegistrationFilter((prev) => (prev === value ? undefined : value));
+  function removeFilter(group: "format" | "status" | "registration") {
+    if (group === "format") setFormatFilter(undefined);
+    if (group === "status") setStatusFilter(undefined);
+    if (group === "registration") setRegistrationFilter(undefined);
   }
 
   const emptyMessage = hasActiveFilter
@@ -101,135 +115,62 @@ export default function ExploreScreen() {
         <View style={styles.headerContent}>
           <Text style={styles.eyebrow}>STUDENT EVENTS</Text>
           <Text style={styles.heading}>Khám phá sự kiện</Text>
-          <TextInput
-            accessibilityLabel="Tìm sự kiện"
-            placeholder="Tìm theo tên sự kiện…"
-            placeholderTextColor="#94a3b8"
-            value={query}
-            onChangeText={setQuery}
-            style={styles.search}
-          />
+          <View style={styles.searchRow}>
+            <TextInput
+              accessibilityLabel="Tìm sự kiện"
+              placeholder="Tìm theo tên sự kiện…"
+              placeholderTextColor="#94a3b8"
+              value={query}
+              onChangeText={setQuery}
+              style={styles.search}
+            />
+            <Pressable accessibilityRole="button" accessibilityLabel={`Bộ lọc${activeFilterCount ? `, ${activeFilterCount} nhóm đang bật` : ""}`} onPress={openFilters} style={[styles.filterButton, hasActiveFilter && styles.filterButtonActive]}>
+              <Text style={[styles.filterButtonText, hasActiveFilter && styles.filterButtonTextActive]}>{hasActiveFilter ? `Lọc · ${activeFilterCount}` : "Lọc"}</Text>
+            </Pressable>
+          </View>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterBar}
-        >
-          {/* Format filters */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện trực tiếp"
-            onPress={() => toggleFormatFilter("IN_PERSON")}
-            style={[styles.chip, formatFilter === "IN_PERSON" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, formatFilter === "IN_PERSON" && styles.chipTextActive]}>
-              Trực tiếp
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện online"
-            onPress={() => toggleFormatFilter("ONLINE")}
-            style={[styles.chip, formatFilter === "ONLINE" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, formatFilter === "ONLINE" && styles.chipTextActive]}>
-              Online
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện kết hợp"
-            onPress={() => toggleFormatFilter("HYBRID")}
-            style={[styles.chip, formatFilter === "HYBRID" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, formatFilter === "HYBRID" && styles.chipTextActive]}>
-              Kết hợp
-            </Text>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          {/* Status filters */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện sắp diễn ra"
-            onPress={() => toggleStatusFilter("UPCOMING")}
-            style={[styles.chip, statusFilter === "UPCOMING" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, statusFilter === "UPCOMING" && styles.chipTextActive]}>
-              Sắp diễn ra
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện đang diễn ra"
-            onPress={() => toggleStatusFilter("ONGOING")}
-            style={[styles.chip, statusFilter === "ONGOING" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, statusFilter === "ONGOING" && styles.chipTextActive]}>
-              Đang diễn ra
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện đã kết thúc"
-            onPress={() => toggleStatusFilter("ENDED")}
-            style={[styles.chip, statusFilter === "ENDED" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, statusFilter === "ENDED" && styles.chipTextActive]}>
-              Đã kết thúc
-            </Text>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          {/* Registration filters */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện còn chỗ"
-            onPress={() => toggleRegistrationFilter("OPEN")}
-            style={[styles.chip, registrationFilter === "OPEN" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, registrationFilter === "OPEN" && styles.chipTextActive]}>
-              Còn chỗ
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện hết chỗ"
-            onPress={() => toggleRegistrationFilter("FULL")}
-            style={[styles.chip, registrationFilter === "FULL" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, registrationFilter === "FULL" && styles.chipTextActive]}>
-              Hết chỗ
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lọc sự kiện đã đóng đăng ký"
-            onPress={() => toggleRegistrationFilter("CLOSED")}
-            style={[styles.chip, registrationFilter === "CLOSED" && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, registrationFilter === "CLOSED" && styles.chipTextActive]}>
-              Đóng đăng ký
-            </Text>
-          </Pressable>
-
-          {hasActiveFilter && (
-            <>
-              <View style={styles.separator} />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Xóa tất cả bộ lọc"
-                onPress={clearFilters}
-                style={styles.clearChip}
-              >
-                <Text style={styles.clearChipText}>✕ Xóa bộ lọc</Text>
-              </Pressable>
-            </>
-          )}
-        </ScrollView>
+        {hasActiveFilter && <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.activeFilters}>
+          {formatFilter && <ActiveFilter label={formatFilter === "IN_PERSON" ? "Trực tiếp" : formatFilter === "ONLINE" ? "Online" : "Kết hợp"} onRemove={() => removeFilter("format")} />}
+          {statusFilter && <ActiveFilter label={statusFilter === "UPCOMING" ? "Sắp diễn ra" : statusFilter === "ONGOING" ? "Đang diễn ra" : "Đã kết thúc"} onRemove={() => removeFilter("status")} />}
+          {registrationFilter && <ActiveFilter label={registrationFilter === "OPEN" ? "Còn chỗ" : registrationFilter === "FULL" ? "Hết chỗ" : "Đã đóng"} onRemove={() => removeFilter("registration")} />}
+          <Pressable accessibilityRole="button" onPress={clearFilters} style={styles.clearAll}><Text style={styles.clearAllText}>Xóa hết</Text></Pressable>
+        </ScrollView>}
       </SafeAreaView>
+      <Modal visible={filtersOpen} transparent animationType="slide" onRequestClose={() => setFiltersOpen(false)}>
+        <View style={styles.modalRoot}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Đóng bộ lọc" style={styles.backdrop} onPress={() => setFiltersOpen(false)} />
+          <View style={styles.filterSheet}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeadingRow}>
+              <View><Text style={styles.sheetTitle}>Bộ lọc</Text><Text style={styles.sheetSubtitle}>Kết hợp tiêu chí để tìm đúng sự kiện</Text></View>
+              <View style={styles.sheetActions}>
+                <Pressable accessibilityRole="button" onPress={() => { setDraftFormat(undefined); setDraftStatus(undefined); setDraftRegistration(undefined); }}><Text style={styles.resetText}>Đặt lại</Text></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel="Đóng bộ lọc" onPress={() => setFiltersOpen(false)} style={styles.closeButton}><Text style={styles.closeButtonText}>×</Text></Pressable>
+              </View>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetOptions}>
+              <FilterGroup title="Hình thức" description="Sự kiện kết hợp sẽ khớp cả hai lựa chọn.">
+                <FilterOption label="Trực tiếp" selected={draftFormat === "IN_PERSON"} onPress={() => setDraftFormat(draftFormat === "IN_PERSON" ? undefined : "IN_PERSON")} />
+                <FilterOption label="Trực tuyến" selected={draftFormat === "ONLINE"} onPress={() => setDraftFormat(draftFormat === "ONLINE" ? undefined : "ONLINE")} />
+                <FilterOption label="Kết hợp" selected={draftFormat === "HYBRID"} onPress={() => setDraftFormat(draftFormat === "HYBRID" ? undefined : "HYBRID")} />
+              </FilterGroup>
+              <FilterGroup title="Thời gian">
+                <FilterOption label="Sắp diễn ra" selected={draftStatus === "UPCOMING"} onPress={() => setDraftStatus(draftStatus === "UPCOMING" ? undefined : "UPCOMING")} />
+                <FilterOption label="Đang diễn ra" selected={draftStatus === "ONGOING"} onPress={() => setDraftStatus(draftStatus === "ONGOING" ? undefined : "ONGOING")} />
+                <FilterOption label="Đã kết thúc" selected={draftStatus === "ENDED"} onPress={() => setDraftStatus(draftStatus === "ENDED" ? undefined : "ENDED")} />
+              </FilterGroup>
+              <FilterGroup title="Đăng ký">
+                <FilterOption label="Còn chỗ" selected={draftRegistration === "OPEN"} onPress={() => setDraftRegistration(draftRegistration === "OPEN" ? undefined : "OPEN")} />
+                <FilterOption label="Đã hết chỗ" selected={draftRegistration === "FULL"} onPress={() => setDraftRegistration(draftRegistration === "FULL" ? undefined : "FULL")} />
+                <FilterOption label="Đã đóng đăng ký" selected={draftRegistration === "CLOSED"} onPress={() => setDraftRegistration(draftRegistration === "CLOSED" ? undefined : "CLOSED")} />
+              </FilterGroup>
+            </ScrollView>
+            <Pressable accessibilityRole="button" onPress={applyFilters} style={styles.applyButton}>
+              <Text style={styles.applyButtonText}>{activeDraftCount(draftFormat, draftStatus, draftRegistration) ? `Áp dụng ${activeDraftCount(draftFormat, draftStatus, draftRegistration)} nhóm lọc` : "Hiện tất cả sự kiện"}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       {loading ? (
         <LoadingState label="Đang tải sự kiện…" />
       ) : error ? (
@@ -300,6 +241,30 @@ export default function ExploreScreen() {
   );
 }
 
+function activeDraftCount(format: FormatFilter | undefined, status: StatusFilter | undefined, registration: RegistrationFilter | undefined) {
+  return Number(format !== undefined) + Number(status !== undefined) + Number(registration !== undefined);
+}
+
+function ActiveFilter({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={`Bỏ lọc ${label}`} onPress={onRemove} style={styles.activeChip}>
+    <Text style={styles.activeChipText}>{label}  ×</Text>
+  </Pressable>;
+}
+
+function FilterGroup({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return <View style={styles.filterGroup}>
+    <Text style={styles.filterGroupTitle}>{title}</Text>
+    {description && <Text style={styles.filterGroupDescription}>{description}</Text>}
+    <View style={styles.optionGrid}>{children}</View>
+  </View>;
+}
+
+function FilterOption({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress} style={[styles.option, selected && styles.optionSelected]}>
+    <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{selected ? "✓  " : ""}{label}</Text>
+  </Pressable>;
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#f5f7fb" },
   header: { backgroundColor: "#1e3a8a" },
@@ -317,7 +282,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     marginTop: 4,
   },
+  searchRow: { alignItems: "center", flexDirection: "row", gap: 9 },
   search: {
+    flex: 1,
+    minWidth: 0,
     backgroundColor: "#fff",
     borderRadius: 12,
     color: "#0f172a",
@@ -325,53 +293,62 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
   },
-  filterBar: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    paddingTop: 4,
-    gap: 8,
-    flexDirection: "row",
+  filterButton: {
     alignItems: "center",
-  },
-  chip: {
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "rgba(255,255,255,0.15)",
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderColor: "rgba(255,255,255,0.35)",
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
+    justifyContent: "center",
+    minHeight: 44,
+    minWidth: 62,
+    paddingHorizontal: 12,
   },
-  chipActive: {
+  filterButtonActive: { backgroundColor: "#dbeafe", borderColor: "#dbeafe" },
+  filterButtonText: { color: "#fff", fontSize: 13, fontWeight: "800" },
+  filterButtonTextActive: { color: "#1e3a8a" },
+  activeFilters: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 7,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 2,
+  },
+  activeChip: { backgroundColor: "#dbeafe", borderRadius: 20, paddingHorizontal: 11, paddingVertical: 7 },
+  activeChipText: { color: "#1e3a8a", fontSize: 12, fontWeight: "700" },
+  clearAll: { paddingHorizontal: 8, paddingVertical: 7 },
+  clearAllText: { color: "#bfdbfe", fontSize: 12, fontWeight: "700" },
+  modalRoot: { flex: 1, justifyContent: "flex-end" },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(15,23,42,0.5)" },
+  filterSheet: {
     backgroundColor: "#fff",
-    borderColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "82%",
+    paddingBottom: 26,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
-  chipText: {
-    color: "#bfdbfe",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  chipTextActive: {
-    color: "#1e3a8a",
-  },
-  separator: {
-    width: 1,
-    height: 20,
-    backgroundColor: "rgba(255,255,255,0.3)",
-    marginHorizontal: 2,
-  },
-  clearChip: {
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "rgba(239,68,68,0.3)",
-    borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.5)",
-  },
-  clearChipText: {
-    color: "#fecaca",
-    fontSize: 13,
-    fontWeight: "600",
-  },
+  sheetHandle: { alignSelf: "center", backgroundColor: "#cbd5e1", borderRadius: 99, height: 4, marginBottom: 17, width: 38 },
+  sheetHeadingRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  sheetActions: { alignItems: "center", flexDirection: "row", gap: 8 },
+  closeButton: { alignItems: "center", backgroundColor: "#f1f5f9", borderRadius: 20, height: 36, justifyContent: "center", width: 36 },
+  closeButtonText: { color: "#334155", fontSize: 25, fontWeight: "500", lineHeight: 29 },
+  sheetTitle: { color: "#172554", fontSize: 22, fontWeight: "800" },
+  sheetSubtitle: { color: "#64748b", fontSize: 13, marginTop: 3 },
+  resetText: { color: "#1d4ed8", fontSize: 13, fontWeight: "800", padding: 8 },
+  sheetOptions: { gap: 20, paddingBottom: 16, paddingTop: 12 },
+  filterGroup: { gap: 10 },
+  filterGroupTitle: { color: "#334155", fontSize: 14, fontWeight: "800" },
+  filterGroupDescription: { color: "#64748b", fontSize: 12, marginTop: -6 },
+  optionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  option: { backgroundColor: "#f1f5f9", borderColor: "#e2e8f0", borderRadius: 12, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 10 },
+  optionSelected: { backgroundColor: "#eff6ff", borderColor: "#2563eb" },
+  optionText: { color: "#475569", fontSize: 13, fontWeight: "600" },
+  optionTextSelected: { color: "#1d4ed8", fontWeight: "800" },
+  applyButton: { alignItems: "center", backgroundColor: "#1d4ed8", borderRadius: 12, marginTop: 10, minHeight: 50, justifyContent: "center" },
+  applyButtonText: { color: "#fff", fontSize: 14, fontWeight: "800" },
   list: { padding: 16, gap: 14 },
   empty: { flexGrow: 1 },
   card: {

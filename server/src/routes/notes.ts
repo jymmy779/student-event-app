@@ -5,10 +5,57 @@ import {
   AiServiceError,
   AiServiceUnavailableError,
   AiTimeoutError,
+  answerEventQuestion,
   summarizeContent,
 } from "../services/ai.js";
+import { publicEventSelect } from "../public-select.js";
 
 export const notesRouter = Router();
+
+notesRouter.post("/events/:id/ask", requireUser, async (request, response, next) => {
+  try {
+    const eventId = String(request.params.id);
+    const question = request.body?.question;
+    if (typeof question !== "string" || !question.trim()) {
+      response.status(400).json({ data: null, error: { code: "QUESTION_EMPTY", message: "Hãy nhập câu hỏi về sự kiện." } });
+      return;
+    }
+    if (question.trim().length > 1000) {
+      response.status(400).json({ data: null, error: { code: "QUESTION_TOO_LONG", message: "Câu hỏi không được vượt quá 1.000 ký tự." } });
+      return;
+    }
+
+    const event = await prisma.event.findFirst({
+      where: { id: eventId, isHidden: false },
+      select: publicEventSelect,
+    });
+    if (!event) {
+      response.status(404).json({ data: null, error: { code: "EVENT_NOT_FOUND", message: "Không tìm thấy sự kiện." } });
+      return;
+    }
+
+    try {
+      const answer = await answerEventQuestion(question.trim(), event);
+      response.json({ data: { answer }, error: null });
+    } catch (aiError) {
+      if (aiError instanceof AiServiceUnavailableError) {
+        response.status(503).json({ data: null, error: { code: "AI_SERVICE_UNAVAILABLE", message: aiError.message } });
+      } else if (aiError instanceof AiTimeoutError) {
+        response.status(504).json({ data: null, error: { code: "AI_TIMEOUT", message: aiError.message } });
+      } else {
+        response.status(503).json({
+          data: null,
+          error: {
+            code: "AI_SERVICE_ERROR",
+            message: aiError instanceof Error ? aiError.message : "Dịch vụ AI gặp lỗi. Vui lòng thử lại.",
+          },
+        });
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 
 const noteSelect = {
   id: true,

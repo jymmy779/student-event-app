@@ -180,7 +180,7 @@ export default function EventDetailScreen() {
             <Text style={styles.sectionTitle}>Công cụ học tập</Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Mở ghi chú và tóm tắt AI"
+              accessibilityLabel="Mở hỏi đáp về sự kiện"
               style={({ pressed }) => [
                 styles.noteCard,
                 pressed && styles.noteCardPressed,
@@ -189,12 +189,12 @@ export default function EventDetailScreen() {
             >
               <View style={styles.noteCardContent}>
                 <View style={styles.iconBadge}>
-                  <Text style={styles.noteIcon}>✨</Text>
+                  <Text style={styles.noteIcon}>✦</Text>
                 </View>
                 <View style={styles.noteInfo}>
-                  <Text style={styles.noteCardTitle}>Ghi chú & Tóm tắt AI</Text>
+                  <Text style={styles.noteCardTitle}>Hỏi đáp về sự kiện</Text>
                   <Text style={styles.noteCardSubtitle}>
-                    Lưu nội dung bài giảng và tạo tóm tắt thông minh với Gemini AI
+                    Hỏi về nội dung, thời gian, địa điểm và cách chuẩn bị tham gia
                   </Text>
                 </View>
                 <Text style={styles.chevron}>›</Text>

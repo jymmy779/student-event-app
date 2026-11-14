@@ -147,9 +147,9 @@ registrationsRouter.post("/events/:id/check-in", requireUser, async (request, re
       return;
     }
     const now = new Date();
-    const checkInOpensAt = new Date(event.startsAt.getTime() - 30 * 60 * 1000);
+    const checkInOpensAt = new Date(event.startsAt.getTime() - 60 * 60 * 1000);
     if (now < checkInOpensAt || now > event.endsAt) {
-      response.status(422).json({ data: null, error: { code: "CHECK_IN_OUTSIDE_WINDOW", message: "Check-in chỉ mở từ 30 phút trước giờ bắt đầu đến giờ kết thúc." } });
+      response.status(422).json({ data: null, error: { code: "CHECK_IN_OUTSIDE_WINDOW", message: "Check-in chỉ mở từ 1 tiếng trước giờ bắt đầu đến giờ kết thúc." } });
       return;
     }
     const checkedInAt = new Date();

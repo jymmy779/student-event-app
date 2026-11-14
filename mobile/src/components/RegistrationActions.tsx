@@ -62,9 +62,16 @@ export function RegistrationActions({ eventId, registration, expired = false, fu
 
   return (
     <View style={styles.container}>
-      <Text style={styles.status}>
-        {registration?.checkedInAt ? "Đã check-in" : registration ? "Đã đăng ký" : expired ? "Đã hết hạn" : full ? "Đã đủ chỗ" : registrationClosed ? "Đã đóng đăng ký" : "Chưa đăng ký"}
-      </Text>
+      {registration?.checkedInAt ? (
+        <View accessibilityRole="text" style={styles.checkedInBadge}>
+          <Text style={styles.checkedInIcon}>✓</Text>
+          <Text style={styles.checkedInText}>Đã check-in</Text>
+        </View>
+      ) : (
+        <Text style={styles.status}>
+          {registration ? "Đã đăng ký" : expired ? "Đã hết hạn" : full ? "Đã đủ chỗ" : registrationClosed ? "Đã đóng đăng ký" : "Chưa đăng ký"}
+        </Text>
+      )}
       {registration?.checkedInAt ? (
         <Text style={styles.hint}>Check-in lúc {formatDate(registration.checkedInAt)}. Bạn không thể hủy đăng ký sau check-in.</Text>
       ) : expired && !registration ? (
@@ -110,6 +117,9 @@ export function RegistrationActions({ eventId, registration, expired = false, fu
 const styles = StyleSheet.create({
   container: { gap: 10 },
   status: { color: "#1e3a8a", fontSize: 16, fontWeight: "700" },
+  checkedInBadge: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: "#dcfce7", borderColor: "#86efac", borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
+  checkedInIcon: { color: "#15803d", fontSize: 15, fontWeight: "900" },
+  checkedInText: { color: "#166534", fontSize: 14, fontWeight: "800" },
   hint: { color: "#64748b", fontSize: 14, lineHeight: 21 },
   button: { minHeight: 48, padding: 12, borderRadius: 10, backgroundColor: "#1d4ed8", flexDirection: "row", gap: 10, alignItems: "center", justifyContent: "center" },
   buttonText: { color: "#fff", fontSize: 15, fontWeight: "700", textAlign: "center" },

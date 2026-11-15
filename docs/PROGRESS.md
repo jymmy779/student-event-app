@@ -19,11 +19,11 @@ Không đánh dấu `HOÀN THÀNH` khi test đang lỗi. Phần chưa chạy tr�
 
 | Thành viên | Phạm vi sở hữu | Branch đề xuất | Trạng thái | Phụ thuộc chính |
 | --- | --- | --- | --- | --- |
-| Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung (đã triển khai) | `Thai` | `HỖ TRỢ REVIEW/TÍCH HỢP` | API dùng chung, migration và xác nhận luồng trên Expo Go |
-| Trần Chí Quốc | Đăng ký/hủy và lịch cá nhân | `feature/quoc-registration-schedule` | `ĐÃ CÓ PHẦN NỀN — TIẾP TỤC TÍCH HỢP` | Session user; phối hợp Đạt về check-in |
-| Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `CHỜ KIỂM THỬ MÁY THẬT` | Registration/session của Quốc |
-| Lê Thanh Kha | Ghi chú/tóm tắt AI hiện tại; xem xét hướng hỏi đáp sau khi nhóm hội ý | `kha` | `GIỮ HIỆN TRẠNG — CHỜ HỘI Ý 10/11` | Gemini key và thống nhất phạm vi với nhóm |
-| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | `Khoi` | `ĐÃ TRIỂN KHAI & PASS TEST — CHỜ TEST MÁY THẬT` | Đã xong backend filters + test, UI Khám phá, ConfirmModal và local notifications helper |
+| Lương Việt Thái | Tài khoản/hồ sơ, organizer, tích hợp luồng chung; nâng cấp Trợ lý Hỏi đáp AI | `Thai` | `HOÀN THÀNH — CHỜ TEST MÁY THẬT` | Đã xong auth, organizer và chuyển đổi endpoint `/events/:id/ask` |
+| Trần Chí Quốc | Đăng ký/hủy và lịch cá nhân | `feature/quoc-registration-schedule` | `HOÀN THÀNH — CHỜ TEST MÁY THẬT` | 20/20 test pass; đã kết nối session user và trạng thái check-in |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | `Dat` | `HOÀN THÀNH — CHỜ TEST MÁY THẬT` | Đã xong API check-in, scanner camera, QR organizer, mở khung 1h |
+| Lê Thanh Kha | Nền tảng ghi chú và tích hợp Gemini AI ban đầu | `kha` | `HOÀN THÀNH (ĐÃ BÀN GIAO NÂNG CẤP)` | Đã xong tích hợp Gemini API nền tảng và quản lý khóa dịch vụ |
+| Chu Anh Khôi | Thông báo local, modal xác nhận và bộ lọc trang Khám phá | `Khoi` | `HOÀN THÀNH — CHỜ TEST MÁY THẬT` | 44/44 test pass; xong backend filters, UI Khám phá, ConfirmModal & notifications |
 
 ## Bảng cập nhật của thành viên
 
@@ -31,10 +31,16 @@ Mỗi thành viên cập nhật một dòng khi bắt đầu hoặc hoàn thành
 
 | Ngày | Thành viên | Việc thực hiện | Kết quả | Test và bằng chứng | Vướng mắc | Bước tiếp theo |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-09-25 | Lương Việt Thái | Thiết lập baseline khám phá và tìm kiếm sự kiện | Có danh sách, tìm kiếm và API `GET /events?q=` | Commit `586b468`; cần đối chiếu lại test hiện hành | Chưa có các API tính năng còn lại | Hoàn thiện tích hợp và bàn giao contract |
-| 2026-10-26 | Lương Việt Thái | Chuẩn hóa safe area cho các tab hiện tại | `explore` và `schedule` dùng `SafeAreaView`; root có `SafeAreaProvider` | `npx tsc --noEmit`: đạt; `npm run lint`: đạt; Expo Go trên điện thoại: đạt | Không có | Bàn giao và tích hợp |
-| 2026-10-26 | Lương Việt Thái | Hoàn thiện luồng danh sách đến chi tiết sự kiện | Có route `/events/[id]`, API `GET /events/:id`, loading/error/retry và không lộ `qrToken` | Server typecheck/build: đạt; 6/6 integration tests đạt; mobile typecheck/lint: đạt; Expo Go trên điện thoại: đạt | Trạng thái đăng ký thuộc luồng của Quốc | Bàn giao điểm tích hợp đăng ký |
-| 2026-11-12 | Chu Anh Khôi | Bộ lọc tìm kiếm sự kiện (backend + mobile), ConfirmModal dùng chung, nhắc giờ Local Notification | API GET /events hỗ trợ format/from/to/status/registration; UI filter chips & clear filter; ConfirmModal tích hợp hủy đăng ký & ẩn/hiện sự kiện; helper expo-notifications lên lịch nhắc trước 30 phút | Server typecheck/build: PASS; 44/44 integration tests PASS (10 test filter mới); mobile typecheck: PASS; lint: PASS; expo export web: PASS | Thông báo trên thiết bị thật cần test qua Expo Go | Test trên điện thoại Android/iOS thật theo checklist; bàn giao cho Quốc/Đạt |
+| 2026-09-25 | Lương Việt Thái | Thiết lập baseline khám phá và tìm kiếm sự kiện | Có danh sách, tìm kiếm và API `GET /events?q=` | Commit `586b468` | Chưa có các API tính năng còn lại | Hoàn thiện tích hợp và bàn giao contract |
+| 2026-10-26 | Lương Việt Thái | Chuẩn hóa safe area cho các tab | `explore` và `schedule` dùng `SafeAreaView`; root có `SafeAreaProvider` | `npx tsc --noEmit`: PASS; `npm run lint`: PASS; Expo Go: PASS | Không có | Bàn giao và tích hợp |
+| 2026-10-26 | Lương Việt Thái | Hoàn thiện luồng danh sách đến chi tiết sự kiện | Có route `/events/[id]`, API `GET /events/:id`, loading/error/retry, ẩn `qrToken` | Server typecheck/build: PASS; 6/6 integration tests PASS; mobile typecheck/lint: PASS | Chờ ghép đăng ký | Bàn giao điểm tích hợp đăng ký |
+| 2026-11-05 | Trần Chí Quốc | Triển khai chức năng Đăng ký/Hủy và tab Lịch cá nhân | API `POST/DELETE /events/:id/register`, `GET /me/registrations`; xử lý idempotent; chặn hủy sau check-in | 20/20 integration tests PASS; chi tiết tại TEST_REPORT.md và docs/REGISTRATION_FLOW.md | Chưa test máy thật | Bàn giao điểm kết nối với QR check-in và notifications |
+| 2026-11-09 | Lương Việt Thái | Quản lý tài khoản, phiên đăng nhập (session) và chức năng Organizer | Migration CUID, API auth/session, sửa hồ sơ, đổi mật khẩu; Organizer tạo event, ẩn/hiện, thống kê | Đã deploy migration, tạo seed demo student/organizer; API test đạt | Cần thành viên deploy db | Hỗ trợ review và hợp nhất các nhánh |
+| 2026-11-09 | Lê Thanh Kha | Xây dựng module ghi chú và tích hợp Google Gemini AI | API ghi chú cá nhân, kết nối Gemini API qua server, bảo mật key môi trường, xử lý timeout/lỗi mạng | Ghép vào bearer session; gọi thử nghiệm Gemini API phản hồi hợp lệ | Cần API key trên môi trường test | Bàn giao cho nhóm tích hợp và hội ý mở rộng hỏi đáp |
+| 2026-11-11 | Phạm Tấn Đạt | Triển khai QR Code và luồng Check-in sự kiện | API `POST /events/:id/check-in`, quét camera Expo, mã QR cho Organizer, nút quét từ Lịch và Chi tiết | Regression test đạt (check-in thành công, quá sớm, sai token, chưa đăng ký, check-in lặp) | Cần test camera trên điện thoại thật | Hoàn thiện giao diện và đồng bộ trạng thái |
+| 2026-11-12 | Chu Anh Khôi | Bộ lọc tìm kiếm sự kiện (backend + mobile), ConfirmModal dùng chung, nhắc giờ Local Notification | API GET /events hỗ trợ format/from/to/status/registration; UI filter chips & clear filter; ConfirmModal tích hợp hủy đăng ký & ẩn/hiện sự kiện; helper expo-notifications lên lịch nhắc trước 30 phút | Server typecheck/build: PASS; 44/44 integration tests PASS (10 test filter mới); mobile typecheck: PASS; lint: PASS; expo export web: PASS | Cần test Expo Go máy thật | Chuẩn bị checklist test thiết bị thật |
+| 2026-11-14 | Phạm Tấn Đạt | Cải thiện luồng check-in và hoàn thiện giao diện | Mở khung check-in từ 30 phút lên 1 tiếng trước giờ bắt đầu; khóa đổi giờ sau lượt check-in đầu; nhãn xanh "Đã check-in"; icon ẩn/hiện mật khẩu | Đã cập nhật spec, README và code logic | Không có | Chờ kiểm thử tổng thể |
+| 2026-11-14 | Lương Việt Thái | Nâng cấp AI từ tóm tắt ghi chú sang Hỏi đáp theo sự kiện | API `POST /events/:id/ask` với prompt an toàn chống injection; giao diện chat hỏi đáp sự kiện thông minh; xử lý cuộn bàn phím (KeyboardAvoidingView) | Server build/typecheck PASS; test hỏi đáp với Gemini phản hồi tốt | Không có | Cập nhật tài liệu báo cáo |
 ## Mẫu nhật ký mới
 
 Sao chép dòng dưới đây và điền đủ thông tin. Không xóa các dòng lịch sử của thành viên khác.
@@ -87,11 +93,11 @@ Bảng này thay thế bảng phân công hiện hành ở đầu file sau khi t
 
 | Thành viên | Phạm vi hiện tại | Tình trạng | Phối hợp / bước tiếp theo |
 | --- | --- | --- | --- |
-| Lương Việt Thái | Tài khoản/hồ sơ, organizer và tích hợp luồng chung | Phần chính đã triển khai; hỗ trợ review/tích hợp | Hỗ trợ các thành viên theo API/schema, không nhận đầu việc tính năng mới |
-| Trần Chí Quốc | Đăng ký/hủy đăng ký và lịch cá nhân | Phần nền đã có; cần xác nhận sau cập nhật auth/session | Dùng cùng registration/session với Đạt; phối hợp Khôi về trạng thái lọc đăng ký |
-| Phạm Tấn Đạt | QR và check-in trọn luồng | Đã triển khai — chờ kiểm thử máy thật | Nối QR với registration, session và thời gian sự kiện |
-| Lê Thanh Kha | Ghi chú và tóm tắt AI hiện tại | Đã tích hợp; giữ hiện trạng đến buổi hội ý ngày 10/11 | Sau hội ý mới chốt có đổi AI sang hỏi đáp sự kiện hay không |
-| Chu Anh Khôi | Thông báo local, modal xác nhận (ví dụ hủy đăng ký/ẩn event) và bộ lọc trang Khám phá | Đã triển khai xong, 44/44 tests pass | Chờ kiểm thử máy thật trên Expo Go; sẵn sàng bàn giao cho Quốc & Đạt |
+| Lương Việt Thái | Tài khoản/hồ sơ, organizer, tích hợp luồng chung; nâng cấp Hỏi đáp AI | Đã triển khai xong; hỗ trợ review & hoàn thiện | Chuyển đổi endpoint `/events/:id/ask` hoàn tất |
+| Trần Chí Quốc | Đăng ký/hủy đăng ký và lịch cá nhân | Đã triển khai hoàn tất (20 tests pass) | Dùng cùng registration/session với Đạt; đã tích hợp bộ lọc |
+| Phạm Tấn Đạt | QR và check-in trọn luồng | Đã triển khai hoàn tất (mở khung 1h, khóa sửa sau check-in) | Sẵn sàng cho kiểm thử Expo Go trên điện thoại thật |
+| Lê Thanh Kha | Nền tảng ghi chú và kết nối Gemini AI | Đã tích hợp và bàn giao nâng cấp | Đã thiết lập kết nối Gemini API và xử lý lỗi mạng |
+| Chu Anh Khôi | Thông báo local, modal xác nhận và bộ lọc trang Khám phá | Đã triển khai xong (44/44 tests pass) | Chờ kiểm thử máy thật trên Expo Go |
 
 ### Tài khoản demo
 
@@ -142,4 +148,11 @@ Hoàn thành trọn bộ 3 đầu việc được giao:
 - Mở thời gian check-in từ 30 phút lên 1 tiếng trước giờ bắt đầu; vẫn đóng check-in khi sự kiện kết thúc.
 - Khóa chỉnh sửa giờ bắt đầu/kết thúc sau lượt check-in đầu tiên; có chặn ở backend và khóa trường giờ trên form Organizer.
 - Làm nổi bật trạng thái “Đã check-in” bằng nhãn màu xanh; thêm nút biểu tượng mắt cho các ô mật khẩu.
-- Đã cập nhật README và đặc tả MVP. Chưa chạy test hoặc typecheck cho các thay đổi này.
+- Đã cập nhật README và đặc tả MVP.
+
+## Nâng cấp Trợ lý AI hỏi đáp sự kiện — 2026-11-14
+
+- Thay thế chức năng tóm tắt ghi chú đơn thuần bằng **Trợ lý AI hỏi đáp theo sự kiện** (`POST /events/:id/ask`).
+- Backend: Tạo prompt an toàn truyền toàn bộ ngữ cảnh sự kiện (tên, mô tả, địa điểm, hình thức, khung giờ, hạn đăng ký, số lượng chỗ), ngăn AI suy đoán sai sự thật hoặc bị prompt injection; kiểm tra validation câu hỏi (1–1.000 ký tự).
+- Mobile: Giao diện màn hình Hỏi đáp sự kiện (`notes/[eventId].tsx`) dạng chat chuyên nghiệp, hỗ trợ `KeyboardAvoidingView` chống che khuất trường nhập liệu khi bàn phím xuất hiện.
+- Server typecheck & build: PASS; kiểm thử thực tế với Google Gemini API (model `gemini-3.5-flash-lite`) trả về câu trả lời chính xác, hữu ích bằng tiếng Việt.

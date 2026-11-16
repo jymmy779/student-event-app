@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ScreenState";
 import { api } from "@/lib/api";
-import { formatDate, formatEventFormat, getEventStatus } from "@/lib/format";
+import { formatDate, formatEventFormat, getEventStatus, isRegistrationDeadlineExpired } from "@/lib/format";
 import type { EventItem } from "@/lib/types";
 
 type FormatFilter = "IN_PERSON" | "ONLINE" | "HYBRID";
@@ -106,8 +106,8 @@ export default function ExploreScreen() {
   const emptyMessage = hasActiveFilter
     ? "Không có sự kiện nào khớp bộ lọc — thử thay đổi tiêu chí tìm kiếm."
     : query
-    ? "Thử một từ khóa khác."
-    : "Các sự kiện mới sẽ xuất hiện tại đây.";
+      ? "Thử một từ khóa khác."
+      : "Các sự kiện mới sẽ xuất hiện tại đây.";
 
   return (
     <SafeAreaView edges={["left", "right"]} style={styles.screen}>
@@ -225,9 +225,13 @@ export default function ExploreScreen() {
                 <Text style={styles.meta}>
                   {`Còn ${item.remainingSlots}/${item.capacity} chỗ`}
                   {item.remainingSlots <= 0 ? " · Đã đủ chỗ" : ""}
-                  {item.registrationDeadline
-                    ? ` · Hạn đăng ký ${formatDate(item.registrationDeadline)}`
-                    : ""}
+                  {item.registrationDeadline ? (
+                    isRegistrationDeadlineExpired(item.registrationDeadline) ? (
+                      <Text style={styles.deadlineExpired}> · Quá hạn đăng ký</Text>
+                    ) : (
+                      ` · Hạn đăng ký ${formatDate(item.registrationDeadline)}`
+                    )
+                  ) : ""}
                 </Text>
               </View>
               <Text numberOfLines={2} style={styles.description}>
@@ -399,5 +403,6 @@ const styles = StyleSheet.create({
   new: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
   cardPressed: { opacity: 0.75 },
   meta: { color: "#475569", fontSize: 14, marginTop: 7 },
+  deadlineExpired: { color: "#dc2626", fontWeight: "600" },
   description: { color: "#64748b", fontSize: 14, lineHeight: 20, marginTop: 8 },
 });

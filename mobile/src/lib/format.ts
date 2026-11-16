@@ -8,6 +8,11 @@ export function formatEventFormat(value: EventFormat) {
   return value === "ONLINE" ? "Trực tuyến" : value === "HYBRID" ? "Kết hợp" : "Trực tiếp";
 }
 
+export function isRegistrationDeadlineExpired(deadline?: string | null) {
+  if (!deadline) return false;
+  return new Date(deadline).getTime() <= Date.now();
+}
+
 export function getEventStatus(event: { startsAt: string; endsAt: string; createdAt: string }) {
   const now = Date.now();
   const startsAt = new Date(event.startsAt).getTime();

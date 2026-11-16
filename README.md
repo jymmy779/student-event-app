@@ -342,7 +342,7 @@ Bảng này là phân công triển khai trong repository. File đăng ký đề
 | **Lương Việt Thái** | **Tài khoản, organizer và tích hợp** | Phần khám phá/chi tiết, tài khoản và quản lý sự kiện đã triển khai; hỗ trợ review API và tích hợp luồng chung, không nhận thêm hạng mục tính năng mới |
 | **Trần Chí Quốc** | **Đăng ký và lịch cá nhân** | Đăng ký/hủy, lịch cá nhân, sức chứa và hạn đăng ký; phối hợp Đạt để thống nhất trạng thái đăng ký phục vụ check-in |
 | **Phạm Tấn Đạt** | **QR và check-in** | Luồng QR cho sự kiện, màn quét và quyền camera, API check-in; xác nhận đăng ký, token, khung giờ và chống check-in lặp |
-| **Lê Thanh Kha** | **Ghi chú và AI** | Giữ luồng ghi chú/tóm tắt hiện tại; cùng nhóm hội ý ngày 10/11 về hướng hỏi đáp theo sự kiện rồi mới chốt thay đổi |
+| **Lê Thanh Kha** | **Trợ lý AI** | Hỏi đáp về Sự kiện với AI |
 | **Chu Anh Khôi** | **Thông báo, modal xác nhận và bộ lọc tìm kiếm** | Nhắc giờ local; modal dùng chung xác nhận thao tác như hủy đăng ký/ẩn sự kiện; bộ lọc ngay trang Khám phá theo hình thức, ngày, trạng thái sự kiện và tình trạng đăng ký |
 
 ### Quy tắc làm việc

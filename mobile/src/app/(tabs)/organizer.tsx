@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Redirect, router, useFocusEffect } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { ErrorState, LoadingState } from "@/components/ScreenState";
@@ -12,10 +12,29 @@ export default function OrganizerScreen() {
   const { user } = useAuth();
   const [events, setEvents] = useState<OrganizerEventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [confirmHide, setConfirmHide] = useState<{ eventId: string; currentHidden: boolean } | null>(null);
+
+  async function handleRefresh() {
+    if (user?.role !== "ORGANIZER") return;
+    setRefreshing(true);
+    try {
+      const items = await api.organizerEvents();
+      setEvents(items);
+      setError(null);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Không tải được danh sách sự kiện.",
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -72,7 +91,13 @@ export default function OrganizerScreen() {
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
-    <ScrollView style={styles.page} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.page}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         <Text style={styles.heading}>Quản lý sự kiện</Text>
         <Text style={styles.sub}>Tạo sự kiện và theo dõi đăng ký</Text>
 

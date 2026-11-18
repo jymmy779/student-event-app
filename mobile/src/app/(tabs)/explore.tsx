@@ -25,6 +25,7 @@ export default function ExploreScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -76,6 +77,28 @@ export default function ExploreScreen() {
       };
     }, [debouncedQuery, reloadKey, formatFilter, statusFilter, registrationFilter]),
   );
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      const activeFilters = {
+        format: formatFilter,
+        status: statusFilter,
+        registration: registrationFilter,
+      };
+      const data = await api.events(debouncedQuery, activeFilters);
+      setEvents(data);
+      setError(null);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Không thể tải sự kiện.",
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   function clearFilters() {
     setFormatFilter(undefined);
@@ -183,6 +206,8 @@ export default function ExploreScreen() {
           contentContainerStyle={events.length ? styles.list : styles.empty}
           data={events}
           keyExtractor={(item) => item.id}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
           ListEmptyComponent={
             <EmptyState
               title="Không tìm thấy sự kiện"

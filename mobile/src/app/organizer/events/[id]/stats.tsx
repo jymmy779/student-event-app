@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Redirect, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { getCheckInQrValue } from "@/lib/check-in";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,9 +21,24 @@ export default function OrganizerEventStatsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [qrVisible, setQrVisible] = useState(false);
+
+  async function handleRefresh() {
+    if (!id) return;
+    setRefreshing(true);
+    try {
+      const result = await api.organizerStats(id);
+      setStats(result);
+      setError(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không tải được thống kê.");
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -49,7 +64,12 @@ export default function OrganizerEventStatsScreen() {
       {loading ? <LoadingState label="Đang tải thống kê…" /> : error ? (
         <ErrorState message={error} onRetry={() => setReloadKey((value) => value + 1)} />
       ) : stats ? (
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        >
           <Text style={styles.eyebrow}>THỐNG KÊ SỰ KIỆN</Text>
           <Text style={styles.title}>{stats.event.title}</Text>
           <Text style={styles.capacity}>Sức chứa {stats.event.capacity} · Còn {stats.event.remainingSlots} chỗ</Text>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorState, LoadingState } from "@/components/ScreenState";
 import { RegistrationActions } from "@/components/RegistrationActions";
@@ -14,6 +14,7 @@ export default function EventDetailScreen() {
   const { user } = useAuth();
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [now, setNow] = useState(0);
@@ -22,6 +23,24 @@ export default function EventDetailScreen() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(Date.now());
   }, [reloadKey]);
+
+  async function handleRefresh() {
+    if (!id) return;
+    setRefreshing(true);
+    try {
+      const data = await api.event(id);
+      setEvent(data);
+      setError(null);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Không thể tải chi tiết sự kiện.",
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -71,7 +90,12 @@ export default function EventDetailScreen() {
           onRetry={() => setReloadKey((value) => value + 1)}
         />
       ) : event ? (
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        >
           <Text style={styles.eyebrow}>THÔNG TIN SỰ KIỆN</Text>
           <Text style={styles.title}>{event.title}</Text>
           {getEventStatus(event) && (
